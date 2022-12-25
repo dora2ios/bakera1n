@@ -5,6 +5,7 @@ A rootless jailbreak toolkit for (A11) iOS 16.x for developer
 - [libirecovery](https://github.com/libimobiledevice/libirecovery)  
 
 ## how to use?
+You need to turn on developer mode to do this.  
 ```
 Usage: ./kokeshi16-rootless [option]
   -h, --help			show usage
