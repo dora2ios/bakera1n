@@ -14,8 +14,10 @@ Usage: ./kokeshi16-rootless [option]
   -d, --debug			enable debug log
 ```
 
-## about Specifications
+## about specifications
 it use checkm8 exploit to boot pwn recovery mode, send payload and hook jump, run fsboot, apply kernel patch using pongo-kpf. then, boot with `rootdev=md0 serial=3 wdt=-1`.  
+If /var/jb/.installed_kok3si exists, it will attempt to start the jailbreak service automatically(execute `/var/jb/etc/rc.d/*`, and load daemons under `/var/jb/Library/LaunchDaemons`).    
+
 
 ## connect to SSH
 ```
