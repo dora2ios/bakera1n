@@ -18,7 +18,7 @@ clean
 exit
 fi
 
-if stat /private/preboot/procursus >/dev/null 2>&1; then
+if stat /private/preboot/$(cat /private/preboot/active)/procursus >/dev/null 2>&1; then
 echo 'Already installed?'
 clean
 exit
@@ -34,10 +34,10 @@ cd /var/root
 mount -uw /private/preboot
 mkdir /private/preboot/tempdir
 tar --preserve-permissions -xkf bootstrap-ssh-iphoneos-arm64.tar -C /private/preboot/tempdir
-mv -v /private/preboot/tempdir/var/jb /private/preboot/procursus
+mv -v /private/preboot/tempdir/var/jb /private/preboot/$(cat /private/preboot/active)/procursus
 rm -rf /private/preboot/tempdir
 
-ln -s /private/preboot/procursus /var/jb
+ln -s /private/preboot/$(cat /private/preboot/active)/procursus /var/jb
 
 /var/jb/prep_bootstrap.sh
 /var/jb/usr/libexec/firmware
