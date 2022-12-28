@@ -46,7 +46,7 @@ git clone https://github.com/dora2-iOS/kok3shi16-rootless.git && cd kok3shi16-ro
 ```
 
 
-# Re-enable rootless environment after reboot
+## re-enable rootless environment after reboot
 execute the following command on ios. (via SSH)  
 ```
 #/var/jb/etc/rc.d/*
@@ -56,7 +56,7 @@ sbreload
 ```
 
 
-## Ensure that the package is set up automatically the next time boot
+## ensure that the package is set up automatically the next time boot
 execute the following command on ios. (via SSH)  
 ```
 touch /var/jb/.installed_kok3shi
