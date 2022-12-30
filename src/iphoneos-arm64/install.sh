@@ -46,6 +46,15 @@ echo "Installing Sileo-Nightly and upgrading Procursus packages..."
 dpkg -i org.coolstar.sileonightly_2.4_iphoneos-arm64.deb > /dev/null
 uicache -p /var/jb/Applications/Sileo-Nightly.app
 
+echo "Installing ElleKit..."
+dpkg --force-all -i ellekit_rootless.deb > /dev/null
+rm -rf /var/jb/usr/lib/ellekit/pspawn.dylib
+cp -v pspawn.dylib /var/jb/usr/lib/ellekit/pspawn.dylib
+ln -s /private/preboot/$(cat /private/preboot/active)/procursus/usr/lib/libsubstitute.dylib /private/preboot/$(cat /private/preboot/active)/procursus/Library/Frameworks/CydiaSubstrate.framework/CydiaSubstrate
+
+echo "Installing PreferenceLoader..."
+dpkg -i preferenceloader_2.2.6-1debug_iphoneos-arm64.deb > /dev/null
+
 #touch /var/jb/.installed_kok3shi
 
 apt-get update -o Acquire::AllowInsecureRepositories=true
