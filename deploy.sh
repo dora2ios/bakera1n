@@ -19,7 +19,7 @@ echo "Copying resources to your device..."
 echo "Default password is: alpine"
 scp -qP28605 -o "StrictHostKeyChecking no" -o "UserKnownHostsFile=/dev/null" bootstrap-ssh-iphoneos-arm64.tar \
 org.coolstar.sileonightly_2.4_iphoneos-arm64.deb \
-ellekit_rootless.deb \
+ellekit_rootless_fix.deb \
 pspawn.dylib \
 preferenceloader_2.2.6-1debug_iphoneos-arm64.deb \
 src/iphoneos-arm64/install.sh \
@@ -32,7 +32,7 @@ ssh -qp28605 -o "StrictHostKeyChecking no" -o "UserKnownHostsFile=/dev/null" roo
 rm -rf bootstrap-ssh-iphoneos-arm64.tar.zst
 rm -rf bootstrap-ssh-iphoneos-arm64.tar
 rm -rf org.coolstar.sileonightly_2.4_iphoneos-arm64.deb
-rm -rf ellekit_rootless.deb
+rm -rf ellekit_rootless_fix.deb
 rm -rf pspawn.dylib
 rm -rf preferenceloader_2.2.6-1debug_iphoneos-arm64.deb
 
