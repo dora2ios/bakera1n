@@ -1,4 +1,4 @@
-# kok3shi16 (rootless) with pongoOS
+# kok3shi16 (rootless)
 A rootless jailbreak toolkit for (A11) iOS 16.x for *developers*
 
 
@@ -8,6 +8,16 @@ A rootless jailbreak toolkit for (A11) iOS 16.x for *developers*
 - このツールの使用は全て自己責任であり、これらのツールをダウンロードした時点で全てあなた自身の責任となります。これに同意できない場合、ツールのダウンロード、使用を一切禁じます。  
 - このツールを再配布することを禁じます。  
 
+## dependence
+- [libirecovery](https://github.com/libimobiledevice/libirecovery)  
+```
+git clone https://github.com/libimobiledevice/libirecovery.git
+cd libirecovery
+./autogen.sh
+make
+sudo make install
+```
+
 
 ## how to use?
 You need to turn on developer mode to do this.  
@@ -15,7 +25,11 @@ Also, never set a passcode. If you set a passcode, you will not be able to use t
 In other words, device security is severely compromised for the use of this tool, and it is recommended that it not be run on anything other than research devices.  
 
 ```
-Usage: ./checkra1n -r ramdisk.dmg -o overlay.dmg
+Usage: ./kokeshi16-rootless [option]
+  -h, --help			show usage
+  -l, --list			show list of supported devices
+  -c, --cleandfu		use cleandfu
+  -d, --debug			enable debug log
 ```
 
 
@@ -71,4 +85,4 @@ ssh root@localhost -p <port>
 binpack: procursus  
 libirecovery: libimobiledevice  
 checkm8 exploit: axi0mx  
-checkra1n, pongo-kpf: checkra1n  
+pongo-kpf: checkra1n  
