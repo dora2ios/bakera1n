@@ -14,8 +14,9 @@ You need to turn on developer mode to do this.
 Also, never set a passcode. If you set a passcode, you will not be able to use this tool until you initialize the device.  
 In other words, device security is severely compromised for the use of this tool, and it is recommended that it not be run on anything other than research devices.  
 
+- Usage  
 ```
-Usage: ./checkra1n -r ramdisk.dmg -o overlay.dmg
+./checkra1n -r ramdisk.dmg -o overlay.dmg -K checkra1n-kpf-pongo
 ```
 
 
