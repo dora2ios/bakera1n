@@ -10,61 +10,10 @@ A rootless jailbreak toolkit for (A11) iOS 16.x for *developers*
 
 
 ## how to use?
-You need to turn on developer mode to do this.  
-Also, never set a passcode. If you set a passcode, you will not be able to use this tool until you initialize the device.  
+You need to turn on developer mode to do this for iOS 16.  
+Also, never set a passcode for A11. If you set a passcode, you will not be able to use this tool until you initialize the device.  
 In other words, device security is severely compromised for the use of this tool, and it is recommended that it not be run on anything other than research devices.  
 
-- Usage  
-```
-./checkra1n -r ramdisk.dmg -o overlay.dmg -K checkra1n-kpf-pongo
-```
-
-
-## about specifications
-- If `/var/jb/.installed_kok3shi` exists, it will attempt to start the jailbreak service automatically (execute `/var/jb/etc/rc.d/*`, and load daemons under `/var/jb/Library/LaunchDaemons`).    
-
-
-## install procursus rootless bootstrap
-- Connect the jailbroken device using kokeshi16-rootless to USB and then execute the following command on macos.  
-```
-git clone https://github.com/dora2-iOS/kok3shi16-rootless.git && cd kok3shi16-rootless
-./deploy.sh
-```
-
-
-## re-enable rootless environment after reboot
-execute the following command on ios. (via SSH)  
-```
-#/var/jb/etc/rc.d/*
-launchctl load /var/jb/Library/LaunchDaemons
-uicache -a
-sbreload
-```
-
-
-## ensure that the package is set up automatically the next time boot
-execute the following command on ios. (via SSH)  
-```
-touch /var/jb/.installed_kok3shi
-```
-
-## connect to SSH
-```
-iproxy <port>:44 &
-ssh root@localhost -p <port>
-```
-
-
-## known issues
-- Rarely panic when turning off power.  
-
-
-## support for chips other than A11?
-- eta son.  
-
-
-## what about user support?
-- no, it's for developoers.  
 
 
 ## credit
