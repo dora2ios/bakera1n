@@ -1,6 +1,9 @@
 #include <stdint.h>
 #include "printf.h"
 
+#include "haxx_dylib.h"
+#include "haxx.h"
+
 //#define DEVBUILD 1
 
 #define LOG(x, ...) \
@@ -35,7 +38,6 @@ printf("[DEV] "x"\n", ##__VA_ARGS__); \
 #define LAUNCHD_PATH        "/sbin/launchd"
 #define PAYLOAD_PATH        "/haxx"
 #define LIBRARY_PATH        "/haxx.dylib"
-#define LIBRARY_PATHROOTFUL "/haxz.dylib"
 #define CUSTOM_DYLD_PATH    "/fs/gen/dyld"
 
 #define IS_IOS16    (1900)
@@ -188,6 +190,10 @@ static uint64_t inline __attribute__((always_inline)) lseek(int fd, int32_t offs
     return msyscall(199, fd, offset, whence);
 }
 
+static int inline __attribute__((always_inline)) mkdir(char* path, int mode) {
+    return msyscall(136, path, mode);
+}
+
 
 void inline __attribute__((always_inline)) _putchar(char character) {
     static size_t chrcnt = 0;
@@ -295,7 +301,6 @@ static inline __attribute__((always_inline)) int main2_bindfs(void)
         }
     }
     
-    
     {
         char *mntpath = "/fs/orig";
         LOG("Mounting snapshot to %s", mntpath);
@@ -359,6 +364,169 @@ static inline __attribute__((always_inline)) int main2_bindfs(void)
             goto fatal_err;
         }
         if (stat(PAYLOAD_PATH, statbuf)) {
+            FATAL("%s: No such file or directory", PAYLOAD_PATH);
+            goto fatal_err;
+        }
+        if (stat(LIBRARY_PATH, statbuf)) {
+            FATAL("%s: No such file or directory", PAYLOAD_PATH);
+            goto fatal_err;
+        }
+    }
+    
+    /*
+     Launchd doesn't like it when the console is open already
+     */
+    
+    for (size_t i = 0; i < 10; i++) {
+        close(i);
+    }
+    
+    int err = 0;
+    {
+        char **argv = (char **)data;
+        char **envp = argv+2;
+        char *strbuf = (char*)(envp+2);
+        argv[0] = strbuf;
+        argv[1] = NULL;
+        memcpy(strbuf, LAUNCHD_PATH, sizeof(LAUNCHD_PATH));
+        strbuf += sizeof(LAUNCHD_PATH);
+        envp[0] = strbuf;
+        envp[1] = NULL;
+        
+        char dyld_insert_libs[] = "DYLD_INSERT_LIBRARIES";
+        char dylibs[] = LIBRARY_PATH;
+        uint8_t eqBuf = 0x3D;
+        
+        memcpy(strbuf, dyld_insert_libs, sizeof(dyld_insert_libs));
+        memcpy(strbuf+sizeof(dyld_insert_libs)-1, &eqBuf, 1);
+        memcpy(strbuf+sizeof(dyld_insert_libs)-1+1, dylibs, sizeof(dylibs));
+        
+        err = execve(argv[0], argv, envp);
+    }
+    
+    if (err) {
+        FATAL("Failed to execve (%d)", err);
+        goto fatal_err;
+    }
+    
+fatal_err:
+    FATAL("see you my friend...");
+    spin();
+    
+    return 0;
+}
+
+static inline __attribute__((always_inline)) int main2_no_bindfs(void)
+{
+    
+    LOG("Remounting fs");
+    {
+        char *path = ROOTFS_RAMDISK;
+        if (mount("hfs", "/", MNT_UPDATE, &path)) {
+            FATAL("Failed to remount ramdisk");
+            goto fatal_err;
+        }
+    }
+    
+    LOG("unlinking dyld");
+    {
+        char *path = CUSTOM_DYLD_PATH;
+        unlink(path);
+        if (!stat(path, statbuf)) {
+            FATAL("Why does that %s exist!?", path);
+            goto fatal_err;
+        }
+    }
+    
+    {
+        char *mntpath = "/";
+        LOG("Mounting rootfs (non snapshot) to %s", mntpath);
+        
+        int err = 0;
+        char buf[0x100];
+        struct mounarg {
+            char *path;
+            uint64_t _null;
+            uint64_t mountAsRaw;
+            uint32_t _pad;
+            char snapshot[0x100];
+        } arg = {
+            root_device,
+            0,
+            MOUNT_WITHOUT_SNAPSHOT,
+            0,
+        };
+        
+    retry_rootfs_mount:
+        err = mount("apfs", mntpath, 0, &arg);
+        if (err) {
+            ERR("Failed to mount rootfs (%d)", err);
+            sleep(1);
+        }
+        
+        if (stat("/private/", statbuf)) {
+            ERR("Failed to find directory, retry.");
+            sleep(1);
+            goto retry_rootfs_mount;
+        }
+        
+        // rootfs already mounted
+        mkdir("/binpack", 0755);
+        
+        if (stat("/binpack", statbuf))  {
+            FATAL("Failed to open %s", "/binpack");
+            goto fatal_err;
+        }
+        
+        char* devpath = "/dev";
+        LOG("Mounting devfs to %s", devpath);
+        {
+            char *path = "devfs";
+            if (mount("devfs", devpath, 0, path)) {
+                FATAL("Failed to mount %s", path);
+                goto fatal_err;
+            }
+        }
+        
+    }
+    
+    {
+        int fd = open(LIBRARY_PATH, O_WRONLY|O_CREAT, 0755);
+        if (fd == -1) {
+            FATAL("Failed to open %s", LIBRARY_PATH);
+            goto fatal_err;
+        }
+        write(fd, haxx_dylib, haxx_dylib_len);
+        close(fd);
+    }
+    
+    {
+        int fd = open(PAYLOAD_PATH, O_WRONLY|O_CREAT, 0755);
+        if (fd == -1) {
+            FATAL("Failed to open %s", PAYLOAD_PATH);
+            goto fatal_err;
+        }
+        write(fd, haxx, haxx_len);
+        close(fd);
+    }
+    
+    void *data = mmap(NULL, 0x4000, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    DEVLOG("data: 0x%016llx", data);
+    if (data == (void*)-1) {
+        FATAL("Failed to mmap");
+        goto fatal_err;
+    }
+    
+    {
+        if (stat(LAUNCHD_PATH, statbuf)) {
+            FATAL("%s: No such file or directory", LAUNCHD_PATH);
+            goto fatal_err;
+        }
+        if (stat(PAYLOAD_PATH, statbuf)) {
+            FATAL("%s: No such file or directory", PAYLOAD_PATH);
+            goto fatal_err;
+        }
+        if (stat(LIBRARY_PATH, statbuf)) {
             FATAL("%s: No such file or directory", PAYLOAD_PATH);
             goto fatal_err;
         }
@@ -456,10 +624,17 @@ int main(void) {
     
     if(checkrain_option_enabled(checkrain_option_bind_mount, pflags))
     {
+        // rootless with bindfs
         return main2_bindfs();
+    }
+    else if(checkrain_option_enabled(checkrain_option_overlay, pflags))
+    {
+        // rootless without bindfs
+        return main2_no_bindfs();
     }
     else
     {
+        // no kinfo wtf
         FATAL("WEN ETA ROOTFULL?");
         goto fatal_err;
     }

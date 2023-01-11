@@ -9,3 +9,6 @@ term/checkra1n
 term/kok3shi_pongoloader
 build/
 kok3shi15_rootless-ssh.tar*
+ramdisk/kok3shird/
+ramdisk/src/haxx.h
+ramdisk/src/haxx_dylib.h

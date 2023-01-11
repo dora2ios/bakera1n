@@ -96,6 +96,40 @@ rm -rf dropbear.h
 xxd -i dropbear.plist > dropbear.h
 cd ..
 
+# inject rootless dylib for launchd
+xcrun -sdk iphoneos clang -arch arm64 -shared src/libpayload.c -o haxx.dylib
+strip haxx.dylib
+ldid -S haxx.dylib
+xxd -i haxx.dylib > haxx_dylib.h
+cd src/
+rm -rf haxx_dylib.h
+mv -v ../haxx_dylib.h ./
+cd ..
+mv haxx.dylib $VOLUME/haxx.dylib
+chown root:wheel $VOLUME/haxx.dylib
+chmod 0755 $VOLUME/haxx.dylib
+
+# inject rootfull dylib for launchd
+#xcrun -sdk iphoneos clang -arch arm64 -shared src/libpayload_rootful.c -o haxz.dylib
+#strip haxz.dylib
+#ldid -S haxz.dylib
+#mv haxz.dylib $VOLUME/haxz.dylib
+#chown root:wheel $VOLUME/haxz.dylib
+#chmod 0755 $VOLUME/haxz.dylib
+
+# payload
+xcrun -sdk iphoneos clang -arch arm64 src/payload.m -o haxx -framework IOKit -framework CoreFoundation -framework Foundation
+strip haxx
+ldid -Ssrc/ent2.xml haxx
+xxd -i haxx > haxx.h
+cd src/
+rm -rf haxx.h
+mv -v ../haxx.h ./
+cd ..
+mv haxx $VOLUME/haxx
+chown root:wheel $VOLUME/haxx
+chmod 0755 $VOLUME/haxx
+
 # fake dyld
 xcrun -sdk iphoneos clang -e__dyld_start -Wl,-dylinker -Wl,-dylinker_install_name,/usr/lib/dyld -nostdlib -static -Wl,-fatal_warnings -Wl,-dead_strip -Wl,-Z --target=arm64-apple-ios12.0 -std=gnu17 -flto -ffreestanding -U__nonnull -nostdlibinc -fno-stack-protector src/fake_dyld.c src/printf.c -o com.apple.dyld
 strip com.apple.dyld
@@ -105,30 +139,6 @@ mv com.apple.dyld $VOLUME/fs/gen/dyld
 chown root:wheel $VOLUME/fs/gen/dyld
 chmod 0755 $VOLUME/fs/gen/dyld
 
-
-# inject rootless dylib for launchd
-xcrun -sdk iphoneos clang -arch arm64 -shared src/libpayload.c -o payload.dylib
-strip payload.dylib
-ldid -S payload.dylib
-mv payload.dylib $VOLUME/haxx.dylib
-chown root:wheel $VOLUME/haxx.dylib
-chmod 0755 $VOLUME/haxx.dylib
-
-# inject rootfull dylib for launchd
-#xcrun -sdk iphoneos clang -arch arm64 -shared src/libpayload_rootful.c -o payload.dylib
-#strip payload.dylib
-#ldid -S payload.dylib
-#mv payload2.dylib $VOLUME/haxz.dylib
-#chown root:wheel $VOLUME/haxz.dylib
-#chmod 0755 $VOLUME/haxz.dylib
-
-# payload
-xcrun -sdk iphoneos clang -arch arm64 src/payload.m -o payload -framework IOKit -framework CoreFoundation -framework Foundation
-strip payload
-ldid -Ssrc/ent2.xml payload
-mv payload $VOLUME/haxx
-chown root:wheel $VOLUME/haxx
-chmod 0755 $VOLUME/haxx
 
 # fakelaunchd
 cp -a src/launchd $VOLUME/sbin/launchd
