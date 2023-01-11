@@ -19,6 +19,9 @@
 #include <sys/mount.h>
 #include <sys/stat.h>
 
+#define kCFCoreFoundationVersionNumber_iOS_16       (1900.0)
+#define kCFCoreFoundationVersionNumber_iOS_16_1_2   (1953.1)
+
 #include "dropbear.h"
 
 extern kern_return_t
@@ -624,39 +627,55 @@ static inline __attribute__((always_inline)) int ReloadSystemRootFull(void)
         }
     }
     
-//    if(!stat("/.installed_kok3shi", &st))
-//    {
-//        int hasDYLDcache = 0;
-//        mkdir("/System/Library/Caches/com.apple.dyld", 0755);
-//
-//        if(stat("/System/Library/Caches/com.apple.dyld/dyld_shared_cache_arm64", &st)) {
-//            DEVLOG("Binding fs");
-//            int err = mount("bindfs", "/System/Library/Caches/com.apple.dyld", 0, "/System/Cryptexes/OS/System/Library/Caches/com.apple.dyld");
-//            if (!err) {
-//                hasDYLDcache = 1;
-//                sync();
-//                sleep(1);
-//            }
-//            else {
-//                ERR("Failed to bind fs (%d)", err);
-//            }
-//        }
-//
-//        if(hasDYLDcache)
-//        {
-//            DEVLOG("loading rc.d");
-//            startRCDRootFull();
-//        }
-//        DEVLOG("loading deamons");
-//        startJBDeamonsRootFull();
-//        sync();
-//        sync();
-//        sync();
-//
-//        char *args[] = { "/usr/bin/sbreload", NULL };
-//        runCmd(args[0], args);
-//
-//    }
+    int hasDYLDcache = 0;
+    // ios 16.0 - 16.1.2
+    if( // !stat("/etc/rc.d/substitute-launcher", &st) &&
+       (kCFCoreFoundationVersionNumber <= kCFCoreFoundationVersionNumber_iOS_16_1_2) &&
+       (kCFCoreFoundationVersionNumber > kCFCoreFoundationVersionNumber_iOS_16))
+    {
+        if(stat("/System/Library/Caches/com.apple.dyld", &st))
+            mkdir("/System/Library/Caches/com.apple.dyld", 0755);
+        
+        if(!stat("/System/Cryptexes/OS/System/Library/Caches/com.apple.dyld", &st) &&
+           !stat("/System/Library/Caches/com.apple.dyld", &st) &&
+           stat("/System/Library/Caches/com.apple.dyld/dyld_shared_cache_arm64", &st))
+        {
+            DEVLOG("Binding fs");
+            int err = mount("bindfs", "/System/Library/Caches/com.apple.dyld", 0, "/System/Cryptexes/OS/System/Library/Caches/com.apple.dyld");
+            if (!err) {
+                hasDYLDcache = 1;
+                sync();
+                sleep(1);
+            }
+            else
+            {
+                ERR("Failed to bind fs (%d)", err);
+            }
+        }
+    }
+    else if(kCFCoreFoundationVersionNumber < kCFCoreFoundationVersionNumber_iOS_16)
+    {
+        // ios 15
+        hasDYLDcache = 1;
+    }
+    else
+    {
+        DEVLOG("substitute is not supported yet.");
+    }
+    
+    if(hasDYLDcache)
+    {
+        DEVLOG("loading rc.d");
+        startRCDRootFull();
+    }
+    DEVLOG("loading deamons");
+    startJBDeamonsRootFull();
+    sync();
+    sync();
+    sync();
+    
+    char *args[] = { "/usr/bin/sbreload", NULL };
+    runCmd(args[0], args);
     
     return 0;
 }
