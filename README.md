@@ -11,7 +11,7 @@ A rootless/rootful jailbreak toolkit for A8 - A11 / iOS 15.0 - 16(.1.2) for *dev
 - このツールを再配布することを禁じます。  
 
 
-## warm
+## warn
 rootless mode (with bindfs edition) may cause bootloop.  
 Also, this should never be done on anything other than a research device.  
 At your own risk!  
