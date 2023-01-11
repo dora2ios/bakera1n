@@ -586,6 +586,7 @@ static inline __attribute__((always_inline)) int ReloadSystemRootFull(void)
 {
     struct stat st;
     int notBinpack = stat("/binpack/.installed_overlay", &st);
+    // rootfull does not have kinfo
     if(notBinpack)
     {
         const char* path = "ramfile://checkra1n";
