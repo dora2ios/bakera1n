@@ -129,6 +129,8 @@ if [ $1 == "-c" ]; then
  #fake launchd (for give some ent)
  /binpack/bin/cp -aRp /.fakelaunchd /tmp/mnt1/fake/loaderd
 
+ sleep 1
+ 
  /binpack/bin/sync
  /binpack/bin/sync
  /binpack/bin/sync
@@ -226,17 +228,27 @@ if [ $1 == "-u" ]; then
  
  echo '[!] updating utils...'
  #rootless lib
+ /binpack/bin/rm -rf /tmp/mnt1/haxz.dylib
+ /binpack/bin/sync
  /binpack/bin/cp -aRp /.haxz.dylib /tmp/mnt1/haxz.dylib
 
  #generic payload
+ /binpack/bin/rm -rf /tmp/mnt1/haxx
+ /binpack/bin/sync
  /binpack/bin/cp -aRp /haxx /tmp/mnt1/haxx
 
  #fake dyld
+ /binpack/bin/rm -rf /tmp/mnt1/fs/gen/dyld
+ /binpack/bin/sync
  /binpack/bin/cp -aRp /.rootfull.dyld /tmp/mnt1/fs/gen/dyld
 
  #fake launchd (for give some ent)
+ /binpack/bin/rm -rf /tmp/mnt1/fake/loaderd
+ /binpack/bin/sync
  /binpack/bin/cp -aRp /.fakelaunchd /tmp/mnt1/fake/loaderd
 
+ sleep 1
+ 
  /binpack/bin/sync
  /binpack/bin/sync
  /binpack/bin/sync
