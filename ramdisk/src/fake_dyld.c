@@ -97,8 +97,6 @@ typedef uint64_t mach_msg_timeout_t;
 #define MOUNT_WITH_SNAPSHOT     (0)
 #define MOUNT_WITHOUT_SNAPSHOT  (1)
 
-uint8_t decWithFuckKey(uint8_t key, size_t len);
-
 __attribute__((naked)) kern_return_t thread_switch(mach_port_t new_thread, int option, mach_msg_timeout_t time) {
     asm(
         "movn x16, #0x3c    \n"
