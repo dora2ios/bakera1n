@@ -40,11 +40,11 @@ endif
 
 .PHONY: all clean
 
-all: kok3shi_pongoloader
+all: bakera1n_loader
 
-kok3shi_pongoloader: pongoterm.c
+bakera1n_loader: pongoterm.c
 	$(CC) $(C_FLAGS) -o $@ $^ $(LD_FLAGS)
-	strip kok3shi_pongoloader
+	strip bakera1n_loader
 
 clean:
-	rm -f kok3shi_pongoloader
+	rm -f bakera1n_loader

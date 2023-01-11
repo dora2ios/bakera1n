@@ -45,13 +45,15 @@
 #define checkrain_option_none               0x00000000
 // KPF options
 #define checkrain_option_verbose_boot       (1 << 0)
+#define checkrain_kpf_option_rootfull       (1 << 8)
+#define checkrain_kpf_option_fakelaunchd    (1 << 9)
 
 // Global options
 #define checkrain_option_safemode           (1 << 0)
 #define checkrain_option_bind_mount         (1 << 1)
 #define checkrain_option_overlay            (1 << 2)
 #define checkrain_option_force_revert       (1 << 7) /* keep this at 7 */
-
+#define checkrain_option_rootfull           (1 << 8)
 
 enum AUTOBOOT_STAGE {
     NONE,
@@ -66,6 +68,7 @@ enum AUTOBOOT_STAGE {
     SETUP_STAGE_KPF_FLAGS,
     SETUP_STAGE_CHECKRAIN_FLAGS,
     SETUP_STAGE_XARGS,
+    SETUP_STAGE_ROOTDEV,
     BOOTUP_STAGE,
     USB_TRANSFER_ERROR,
 };
@@ -74,10 +77,12 @@ enum AUTOBOOT_STAGE CURRENT_STAGE = NONE;
 
 static bool use_autoboot = false;
 static bool use_bindfs = false;
+static bool use_rootful = false;
+static char* root_device = NULL;
 
-char* bootArgs = NULL;
-uint32_t kpf_flags = checkrain_option_none;
-uint32_t checkra1n_flags = checkrain_option_none;
+static char* bootArgs = NULL;
+static uint32_t kpf_flags = checkrain_option_none;
+static uint32_t checkra1n_flags = checkrain_option_none;
 
 #define LOG(fmt, ...) do { fprintf(stderr, "\x1b[1;96m" fmt "\x1b[0m\n", ##__VA_ARGS__); } while(0)
 #define ERR(fmt, ...) do { fprintf(stderr, "\x1b[1;91m" fmt "\x1b[0m\n", ##__VA_ARGS__); } while(0)
@@ -517,7 +522,10 @@ static void* io_main(void *arg)
                         if(ret == USB_RET_SUCCESS)
                         {
                             LOG("%s", "modload");
-                            CURRENT_STAGE = SEND_STAGE_RAMDISK;
+                            if(!use_rootful)
+                                CURRENT_STAGE = SEND_STAGE_RAMDISK;
+                            else
+                                CURRENT_STAGE = SETUP_STAGE_ROOTDEV;
                         }
                         else
                         {
@@ -565,6 +573,34 @@ static void* io_main(void *arg)
                         continue;
                     }
                     
+                    if(CURRENT_STAGE == SETUP_STAGE_ROOTDEV)
+                    {
+                        if(root_device)
+                        {
+                            char str[64];
+                            memset(&str, 0x0, 64);
+                            sprintf(str, "set_rootdev %s\n", root_device);
+                            ret = USBControlTransfer(stuff->handle, 0x21, 3, 0, 0, (uint32_t)(strlen(str)), str, NULL);
+                            if(ret == USB_RET_SUCCESS)
+                            {
+                                memset(&str, 0x0, 64);
+                                sprintf(str, "set_rootdev %s", root_device);
+                                LOG("%s", str);
+                                CURRENT_STAGE = SEND_STAGE_OVERLAY;
+                            }
+                            else
+                            {
+                                CURRENT_STAGE = USB_TRANSFER_ERROR;
+                            }
+                        }
+                        else
+                        {
+                            ERR("root_device not found");
+                            CURRENT_STAGE = USB_TRANSFER_ERROR;
+                        }
+                        continue;
+                    }
+                    
                     if(CURRENT_STAGE == SEND_STAGE_OVERLAY)
                     {
                         size_t size = overlay_dmg_len;
@@ -604,6 +640,12 @@ static void* io_main(void *arg)
                     if(CURRENT_STAGE == SETUP_STAGE_KPF_FLAGS)
                     {
                         
+                        if(use_rootful)
+                        {
+                            kpf_flags |= checkrain_kpf_option_rootfull;
+                            kpf_flags |= checkrain_kpf_option_fakelaunchd;
+                        }
+                        
                         char str[64];
                         memset(&str, 0x0, 64);
                         sprintf(str, "kpf_flags 0x%08x\n", kpf_flags);
@@ -628,6 +670,11 @@ static void* io_main(void *arg)
                         if(use_bindfs)
                         {
                             checkra1n_flags |= checkrain_option_bind_mount;
+                        }
+                        else if(use_rootful)
+                        {
+                            checkra1n_flags &= ~checkrain_option_bind_mount;
+                            checkra1n_flags |= checkrain_option_rootfull;
                         }
                         
                         char str[64];
@@ -671,14 +718,20 @@ static void* io_main(void *arg)
                         }
                         else
                         {
+                            char* defaultBootArgs = NULL;
+                            if(use_rootful)
+                                defaultBootArgs = "serial=3";
+                            else
+                                defaultBootArgs = "rootdev=md0 serial=3";
+                                    
                             char str[512];
                             memset(&str, 0x0, 512);
-                            sprintf(str, "xargs %s\n", "rootdev=md0 serial=3");
+                            sprintf(str, "xargs %s\n", defaultBootArgs);
                             ret = USBControlTransfer(stuff->handle, 0x21, 3, 0, 0, (uint32_t)(strlen(str)), str, NULL);
                             if(ret == USB_RET_SUCCESS)
                             {
                                 memset(&str, 0x0, 512);
-                                sprintf(str, "xargs %s", "rootdev=md0 serial=3");
+                                sprintf(str, "xargs %s", defaultBootArgs);
                                 LOG("%s", str);
                                 CURRENT_STAGE = BOOTUP_STAGE;
                             }
@@ -855,7 +908,7 @@ static void io_stop(stuff_t *stuff)
 
 static void usage(const char* s)
 {
-    LOG("Usage: %s [-ahn] [-e <boot-args>]", s);
+    LOG("Usage: %s [-abhn] [-e <boot-args>] [-r <root_device>]", s);
     return;
 }
 
@@ -874,10 +927,11 @@ int main(int argc, char** argv)
         { "noBlockIO",      no_argument,       NULL, 'n' },
         { "extra-bootargs", required_argument, NULL, 'e' },
         { "bindfs",         no_argument,       NULL, 'b' },
+        { "rootful",        required_argument, NULL, 'r' },
         { NULL, 0, NULL, 0 }
     };
     
-    while ((opt = getopt_long(argc, argv, "ahne:b", longopts, NULL)) > 0) {
+    while ((opt = getopt_long(argc, argv, "ahne:br:", longopts, NULL)) > 0) {
         switch (opt) {
             case 'h':
                 usage(argv[0]);
@@ -903,31 +957,19 @@ int main(int argc, char** argv)
                 use_bindfs = 1;
                 break;
                 
+            case 'r':
+                use_rootful = 1;
+                if (optarg) {
+                    root_device = strdup(optarg);
+                    LOG("rootdevice: [%s]", root_device);
+                }
+                break;
+                
             default:
                 usage(argv[0]);
                 return -1;
         }
     }
-    
-    /*
-    if(argc == 2)
-    {
-        if(strcmp(argv[1], "-n") == 0)
-        {
-            gBlockIO = 0;
-        }
-        else if(strcmp(argv[1], "-a") == 0)
-        {
-            LOG("selected: autoboot mode");
-            use_autoboot = 1;
-        }
-        else
-        {
-            ERR("Bad arg: %s", argv[1]);
-            return -1;
-        }
-    }
-     */
     
     return pongoterm_main();
 }

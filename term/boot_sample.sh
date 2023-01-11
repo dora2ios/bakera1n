@@ -31,7 +31,7 @@ echo '#=========================='
 sleep 1
 # autoboot
 if [ $useCustomArgs == 0 ]; then
- ./kok3shi_pongoloader -ab
+ ./bakera1n_loader -ab
 else
- ./kok3shi_pongoloader -ab -e $2
+ ./bakera1n_loader -ab -e $2
 fi

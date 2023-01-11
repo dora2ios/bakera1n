@@ -1,8 +1,13 @@
 #include <stdint.h>
 #include "printf.h"
 
+
 #include "haxx_dylib.h"
+#include "haxz_dylib.h"
 #include "haxx.h"
+#include "loaderd.h"
+#include "fakedyld.h"
+#include "fsutil.h"
 
 //#define DEVBUILD 1
 
@@ -491,6 +496,7 @@ static inline __attribute__((always_inline)) int main2_no_bindfs(void)
     }
     
     {
+        unlink(LIBRARY_PATH);
         int fd = open(LIBRARY_PATH, O_WRONLY|O_CREAT, 0755);
         if (fd == -1) {
             FATAL("Failed to open %s", LIBRARY_PATH);
@@ -501,12 +507,57 @@ static inline __attribute__((always_inline)) int main2_no_bindfs(void)
     }
     
     {
+        unlink(PAYLOAD_PATH);
         int fd = open(PAYLOAD_PATH, O_WRONLY|O_CREAT, 0755);
         if (fd == -1) {
             FATAL("Failed to open %s", PAYLOAD_PATH);
             goto fatal_err;
         }
         write(fd, haxx, haxx_len);
+        close(fd);
+    }
+    
+    {
+        unlink("/.haxz.dylib");
+        int fd = open("/.haxz.dylib", O_WRONLY|O_CREAT, 0755);
+        if (fd == -1) {
+            FATAL("Failed to open %s", "/.haxz.dylib");
+            goto fatal_err;
+        }
+        write(fd, haxz_dylib, haxz_dylib_len);
+        close(fd);
+    }
+    
+    {
+        unlink("/.fakelaunchd");
+        int fd = open("/.fakelaunchd", O_WRONLY|O_CREAT, 0755);
+        if (fd == -1) {
+            FATAL("Failed to open %s", "/.fakelaunchd");
+            goto fatal_err;
+        }
+        write(fd, loaderd, loaderd_len);
+        close(fd);
+    }
+    
+    {
+        unlink("/.rootfull.dyld");
+        int fd = open("/.rootfull.dyld", O_WRONLY|O_CREAT, 0755);
+        if (fd == -1) {
+            FATAL("Failed to open %s", "/.rootfull.dyld");
+            goto fatal_err;
+        }
+        write(fd, fakedyld, fakedyld_len);
+        close(fd);
+    }
+    
+    {
+        unlink("/fsutil.sh");
+        int fd = open("/fsutil.sh", O_WRONLY|O_CREAT, 0755);
+        if (fd == -1) {
+            FATAL("Failed to open %s", "/fsutil.sh");
+            goto fatal_err;
+        }
+        write(fd, fsutil_sh, fsutil_sh_len);
         close(fd);
     }
     

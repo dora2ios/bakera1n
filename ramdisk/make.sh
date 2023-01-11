@@ -96,6 +96,15 @@ rm -rf dropbear.h
 xxd -i dropbear.plist > dropbear.h
 cd ..
 
+
+# fsutil
+cd src/
+xxd -i fsutil.sh > fsutil.h
+cd ..
+cp -a src/fsutil.sh $VOLUME/fsutil.sh
+chown root:wheel $VOLUME/fsutil.sh
+chmod 0755 $VOLUME/fsutil.sh
+
 # inject rootless dylib for launchd
 xcrun -sdk iphoneos clang -arch arm64 -shared src/libpayload.c -o haxx.dylib
 strip haxx.dylib
@@ -110,12 +119,17 @@ chown root:wheel $VOLUME/haxx.dylib
 chmod 0755 $VOLUME/haxx.dylib
 
 # inject rootfull dylib for launchd
-#xcrun -sdk iphoneos clang -arch arm64 -shared src/libpayload_rootful.c -o haxz.dylib
-#strip haxz.dylib
-#ldid -S haxz.dylib
-#mv haxz.dylib $VOLUME/haxz.dylib
-#chown root:wheel $VOLUME/haxz.dylib
-#chmod 0755 $VOLUME/haxz.dylib
+xcrun -sdk iphoneos clang -arch arm64 -shared src/libpayload_rootful.c -o haxz.dylib
+strip haxz.dylib
+ldid -S haxz.dylib
+xxd -i haxz.dylib > haxz_dylib.h
+cd src/
+rm -rf haxz_dylib.h
+mv -v ../haxz_dylib.h ./
+cd ..
+mv haxz.dylib $VOLUME/.haxz.dylib
+chown root:wheel $VOLUME/.haxz.dylib
+chmod 0755 $VOLUME/.haxz.dylib
 
 # payload
 xcrun -sdk iphoneos clang -arch arm64 src/payload.m -o haxx -framework IOKit -framework CoreFoundation -framework Foundation
@@ -130,6 +144,34 @@ mv haxx $VOLUME/haxx
 chown root:wheel $VOLUME/haxx
 chmod 0755 $VOLUME/haxx
 
+# fakelaunchd
+cp -a src/launchd $VOLUME/sbin/launchd
+ldid -Ssrc/ent.xml $VOLUME/sbin/launchd
+chown root:wheel $VOLUME/sbin/launchd
+chmod 0755 $VOLUME/sbin/launchd
+cp -a $VOLUME/sbin/launchd $VOLUME/.fakelaunchd
+cp -a $VOLUME/sbin/launchd loaderd
+xxd -i loaderd > loaderd.h
+cd src/
+rm -rf loaderd.h
+mv -v ../loaderd.h ./
+cd ..
+rm loaderd
+
+# fake dyld for rootful
+xcrun -sdk iphoneos clang -e__dyld_start -Wl,-dylinker -Wl,-dylinker_install_name,/usr/lib/dyld -nostdlib -static -Wl,-fatal_warnings -Wl,-dead_strip -Wl,-Z --target=arm64-apple-ios12.0 -std=gnu17 -flto -ffreestanding -U__nonnull -nostdlibinc -fno-stack-protector src/fake_dyld_rootful.c src/printf.c -o com.apple.dyld
+strip com.apple.dyld
+ldid -S com.apple.dyld
+mv com.apple.dyld fakedyld
+xxd -i fakedyld > fakedyld.h
+cd src/
+rm -rf fakedyld.h
+mv -v ../fakedyld.h ./
+cd ..
+mv fakedyld $VOLUME/.rootfull.dyld
+chown root:wheel $VOLUME/.rootfull.dyld
+chmod 0755 $VOLUME/.rootfull.dyld
+
 # fake dyld
 xcrun -sdk iphoneos clang -e__dyld_start -Wl,-dylinker -Wl,-dylinker_install_name,/usr/lib/dyld -nostdlib -static -Wl,-fatal_warnings -Wl,-dead_strip -Wl,-Z --target=arm64-apple-ios12.0 -std=gnu17 -flto -ffreestanding -U__nonnull -nostdlibinc -fno-stack-protector src/fake_dyld.c src/printf.c -o com.apple.dyld
 strip com.apple.dyld
@@ -139,13 +181,14 @@ mv com.apple.dyld $VOLUME/fs/gen/dyld
 chown root:wheel $VOLUME/fs/gen/dyld
 chmod 0755 $VOLUME/fs/gen/dyld
 
-
-# fakelaunchd
-cp -a src/launchd $VOLUME/sbin/launchd
-ldid -Ssrc/ent.xml $VOLUME/sbin/launchd
-chown root:wheel $VOLUME/sbin/launchd
-chmod 0755 $VOLUME/sbin/launchd
-
 hdiutil create -size 1m -layout NONE -format UDRW -srcfolder ./$VOLUME -fs HFS+ ./ramdisk.dmg
 
 rm -rf $VOLUME/
+
+rm -f src/fsutil.h
+rm -f src/dropbear.h
+rm -f src/haxx_dylib.h
+rm -f src/haxz_dylib.h
+rm -f src/haxx.h
+rm -f src/loaderd.h
+rm -f src/fakedyld.h

@@ -12,19 +12,20 @@ all:
 	cd build && xxd -i kpf > kpf.h
 	cd build && xxd -i ramdisk.dmg > ramdisk.h
 	cd build && xxd -i overlay.dmg > overlay.h
-	-$(RM) -r term/kok3shi_pongoloader
+	-$(RM) -r term/bakera1n_loader
 	cd term && make
 	
 	-$(RM) -r builtin/
-	-$(RM) -r kok3shi15_rootless-ssh.tar.xz
-	-$(RM) -r kok3shi15_rootless-ssh.tar
+	-$(RM) -r bakera1n_v2.tar.xz
+	-$(RM) -r bakera1n_v2.tar
 	mkdir builtin/
-	cp -a term/kok3shi_pongoloader builtin/kok3shi_pongoloader
-	cp -a term/boot.sh builtin/boot.sh
-	tar -cvf kok3shi15_rootless-ssh.tar builtin/kok3shi_pongoloader builtin/boot.sh
-	xz -z9k kok3shi15_rootless-ssh.tar
+	cp -a term/bakera1n_loader builtin/bakera1n_loader
+	cp -a term/boot_sample.sh builtin/boot_sample.sh
+	cp -a term/README.md builtin/README.md
+	tar -cvf bakera1n_v2.tar builtin/bakera1n_loader builtin/boot_sample.sh builtin/README.md
+	xz -z9k bakera1n_v2.tar
 	-$(RM) -r builtin/
-	openssl sha256 kok3shi15_rootless-ssh.tar.xz
+	openssl sha256 bakera1n_v2.tar.xz
 
 clean:
 	-$(RM) -r build/

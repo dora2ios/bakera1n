@@ -1,5 +1,7 @@
-# kok3shi16 (rootless) with pongoOS
-A rootless jailbreak toolkit for (A11) iOS 16.x for *developers*
+# ~~kok3shi16 (rootless) with pongoOS~~
+# bakera1n
+
+A rootless/rootful jailbreak toolkit for A8 - A11 / iOS 15.0 - 16(.1.2) for *developers*
 
 
 ## 警告  
@@ -9,15 +11,19 @@ A rootless jailbreak toolkit for (A11) iOS 16.x for *developers*
 - このツールを再配布することを禁じます。  
 
 
+## warm
+rootless mode (with bindfs edition) may cause bootloop.  
+Also, this should never be done on anything other than a research device.  
+At your own risk!  
+
 ## how to use?
 You need to turn on developer mode to do this for iOS 16.  
 Also, never set a passcode for A11. If you set a passcode, you will not be able to use this tool until you initialize the device.  
 In other words, device security is severely compromised for the use of this tool, and it is recommended that it not be run on anything other than research devices.  
-
-
 
 ## credit
 binpack: procursus  
 libirecovery: libimobiledevice  
 checkm8 exploit: axi0mx  
 checkra1n, pongo-kpf: checkra1n  
+asdfugil: rootdev_module, techniques to prevent haxx.dylib from interfering with device power-off

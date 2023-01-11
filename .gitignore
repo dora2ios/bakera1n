@@ -6,9 +6,10 @@ org.coolstar.sileonightly_2.4_iphoneos-arm64.deb
 ramdisk/ramdisk.dmg
 ramdisk/src/dropbear.h
 term/checkra1n
-term/kok3shi_pongoloader
+term/bakera1n_loader
 build/
-kok3shi15_rootless-ssh.tar*
+bakera1n_v2.tar*
 ramdisk/kok3shird/
 ramdisk/src/haxx.h
 ramdisk/src/haxx_dylib.h
+
