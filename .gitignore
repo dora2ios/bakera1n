@@ -8,7 +8,7 @@ ramdisk/src/dropbear.h
 term/checkra1n
 term/bakera1n_loader
 build/
-bakera1n_v2.tar*
+bakera1n_v2*.tar*
 ramdisk/kok3shird/
 ramdisk/src/haxx.h
 ramdisk/src/haxx_dylib.h

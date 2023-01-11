@@ -16,16 +16,16 @@ all:
 	cd term && make
 	
 	-$(RM) -r builtin/
-	-$(RM) -r bakera1n_v2.tar.xz
-	-$(RM) -r bakera1n_v2.tar
+	-$(RM) -r bakera1n_v2.0.1.tar.xz
+	-$(RM) -r bakera1n_v2.0.1.tar
 	mkdir builtin/
 	cp -a term/bakera1n_loader builtin/bakera1n_loader
 	cp -a term/boot_sample.sh builtin/boot_sample.sh
 	cp -a term/README.md builtin/README.md
-	tar -cvf bakera1n_v2.tar builtin/bakera1n_loader builtin/boot_sample.sh builtin/README.md
-	xz -z9k bakera1n_v2.tar
+	tar -cvf bakera1n_v2.0.1.tar builtin/bakera1n_loader builtin/boot_sample.sh builtin/README.md
+	xz -z9k bakera1n_v2.0.1.tar
 	-$(RM) -r builtin/
-	openssl sha256 bakera1n_v2.tar.xz
+	openssl sha256 bakera1n_v2.0.1.tar.xz
 
 clean:
 	-$(RM) -r build/
