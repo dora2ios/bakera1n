@@ -31,7 +31,7 @@ echo '#=========================='
 sleep 1
 # autoboot
 if [ $useCustomArgs == 0 ]; then
- ./bakera1n_loader -ab
+ ./bakera1n_loader -a
 else
- ./bakera1n_loader -ab -e $2
+ ./bakera1n_loader -a -e $2
 fi
