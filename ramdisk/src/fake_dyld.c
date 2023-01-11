@@ -38,8 +38,8 @@ printf("[DEV] "x"\n", ##__VA_ARGS__); \
 #define LIBRARY_PATHROOTFUL "/haxz.dylib"
 #define CUSTOM_DYLD_PATH    "/fs/gen/dyld"
 
-#define IS_IOS16    (3127)
-#define IS_IOS15    (1378)
+#define IS_IOS16    (1900)
+#define IS_IOS15    (1800)
 
 asm(
     ".globl __dyld_start    \n"
@@ -94,10 +94,33 @@ typedef uint64_t mach_msg_timeout_t;
 #define MNT_RELOAD      0x00040000      /* reload filesystem data */
 #define MNT_FORCE       0x00080000      /* force unmount or readonly change */
 
-#define MOUNT_WITH_SNAPSHOT     (0)
-#define MOUNT_WITHOUT_SNAPSHOT  (1)
+#define MOUNT_WITH_SNAPSHOT                 (0)
+#define MOUNT_WITHOUT_SNAPSHOT              (1)
 
-__attribute__((naked)) kern_return_t thread_switch(mach_port_t new_thread, int option, mach_msg_timeout_t time) {
+#define checkrain_option_none               0x00000000
+#define checkrain_option_all                0x7fffffff
+#define checkrain_option_failure            0x80000000
+
+#define checkrain_option_safemode           (1 << 0)
+#define checkrain_option_bind_mount         (1 << 1)
+#define checkrain_option_overlay            (1 << 2)
+#define checkrain_option_force_revert       (1 << 7) /* keep this at 7 */
+
+typedef uint32_t checkrain_option_t, *checkrain_option_p;
+
+struct kerninfo {
+    uint64_t size;
+    uint64_t base;
+    uint64_t slide;
+    checkrain_option_t flags;
+};
+
+static checkrain_option_t pflags;
+static char *root_device = NULL;
+static int isOS = 0;
+static char statbuf[0x400];
+
+static __attribute__((naked)) kern_return_t thread_switch(mach_port_t new_thread, int option, mach_msg_timeout_t time) {
     asm(
         "movn x16, #0x3c    \n"
         "svc 0x80           \n"
@@ -105,7 +128,7 @@ __attribute__((naked)) kern_return_t thread_switch(mach_port_t new_thread, int o
         );
 }
 
-__attribute__((naked)) uint64_t msyscall(uint64_t syscall, ...) {
+static __attribute__((naked)) uint64_t msyscall(uint64_t syscall, ...) {
     asm(
         "mov x16, x0            \n"
         "ldp x0, x1, [sp]       \n"
@@ -117,45 +140,54 @@ __attribute__((naked)) uint64_t msyscall(uint64_t syscall, ...) {
         );
 }
 
-void inline __attribute__((always_inline)) sleep(int secs) {
+static void inline __attribute__((always_inline)) sleep(int secs) {
     thread_switch(0, 2, secs*0x400);
 }
 
-int inline __attribute__((always_inline)) sys_dup2(int from, int to) {
+static int inline __attribute__((always_inline)) sys_dup2(int from, int to) {
     return msyscall(90, from, to);
 }
 
-int inline __attribute__((always_inline)) stat(void *path, void *ub) {
+static int inline __attribute__((always_inline)) stat(void *path, void *ub) {
     return msyscall(188, path, ub);
 }
 
-int inline __attribute__((always_inline)) mount(char *type, char *path, int flags, void *data) {
+static int inline __attribute__((always_inline)) mount(char *type, char *path, int flags, void *data) {
     return msyscall(167, type, path, flags, data);
 }
 
-void inline __attribute__((always_inline)) *mmap(void *addr, size_t length, int prot, int flags, int fd, uint64_t offset) {
+static void inline __attribute__((always_inline)) *mmap(void *addr, size_t length, int prot, int flags, int fd, uint64_t offset) {
     return (void *)msyscall(197, addr, length, prot, flags, fd, offset);
 }
 
-uint64_t inline __attribute__((always_inline)) write(int fd, void* cbuf, size_t nbyte) {
+static uint64_t inline __attribute__((always_inline)) write(int fd, void* cbuf, size_t nbyte) {
     return msyscall(4, fd, cbuf, nbyte);
 }
 
-int inline __attribute__((always_inline)) close(int fd) {
+static int inline __attribute__((always_inline)) close(int fd) {
     return msyscall(6, fd);
 }
 
-int inline __attribute__((always_inline)) open(void *path, int flags, int mode) {
+static int inline __attribute__((always_inline)) open(void *path, int flags, int mode) {
     return msyscall(5, path, flags, mode);
 }
 
-int inline __attribute__((always_inline)) execve(char *fname, char *const argv[], char *const envp[]) {
+static int inline __attribute__((always_inline)) execve(char *fname, char *const argv[], char *const envp[]) {
     return msyscall(59, fname, argv, envp);
 }
 
-int inline __attribute__((always_inline)) unlink(void *path) {
+static int inline __attribute__((always_inline)) unlink(void *path) {
     return msyscall(10, path);
 }
+
+static uint64_t inline __attribute__((always_inline)) read(int fd, void *cbuf, size_t nbyte) {
+    return msyscall(3, fd, cbuf, nbyte);
+}
+
+static uint64_t inline __attribute__((always_inline)) lseek(int fd, int32_t offset, int whence) {
+    return msyscall(199, fd, offset, whence);
+}
+
 
 void inline __attribute__((always_inline)) _putchar(char character) {
     static size_t chrcnt = 0;
@@ -167,7 +199,7 @@ void inline __attribute__((always_inline)) _putchar(char character) {
     }
 }
 
-void inline __attribute__((always_inline)) spin(void) {
+static void inline __attribute__((always_inline)) spin(void) {
     ERR("WTF?!");
     while(1) {
         sleep(1);
@@ -185,46 +217,56 @@ void memset(void *dst, int c, size_t n) {
     for (size_t i = 0; i < n; i++) *d++ = c;
 }
 
-int main(void) {
-    int console = open("/dev/console", O_RDWR, 0);
-    sys_dup2(console, 0);
-    sys_dup2(console, 1);
-    sys_dup2(console, 2);
-    char statbuf[0x400];
-    
-    puts("#==================\n");
-    puts("#\n");
-    puts("# kok3shi loader\n");
-    puts("#\n");
-    puts("# (c) 2023 sakuRdev\n");
-    puts("#==================\n");
-    
-    int is15 = 0;
-    int is16 = 0;
-    
-    LOG("Checking rootfs");
+static inline __attribute__((always_inline)) int checkrain_option_enabled(checkrain_option_t flags, checkrain_option_t opt)
+{
+    if(flags == checkrain_option_failure)
     {
-        while ((stat(ROOTFS_IOS16, statbuf)) &&
-               (stat(ROOTFS_IOS15, statbuf)))
+        switch(opt)
         {
-            LOG("Waiting for roots...");
-            sleep(1);
+            case checkrain_option_safemode:
+                return 1;
+            default:
+                return 0;
         }
     }
+    return (flags & opt) != 0;
+}
+
+static inline __attribute__((always_inline)) int getFlags(void)
+{
+    uint32_t err = 0;
     
-    char *root_device = NULL;
-    int isOS = 0;
-    if(stat(ROOTFS_IOS15, statbuf))
+    size_t sz = 0;
+    struct kerninfo info;
+    int fd = open("/dev/rmd0", O_RDONLY|O_RDWR, 0);
+    if (fd >= 0x1)
     {
-        root_device = ROOTFS_IOS16;
-        isOS = IS_IOS16;
+        read(fd, &sz, 4);
+        lseek(fd, (long)(sz), SEEK_SET);
+        if(read(fd, &info, sizeof(struct kerninfo)) == sizeof(struct kerninfo))
+        {
+            pflags = info.flags;
+            LOG("got flags: %d from stage1", pflags);
+            err = 0;
+        } else
+        {
+            ERR("Read kinfo failed");
+            err = -1;
+        }
+        close(fd);
     }
     else
     {
-        root_device = ROOTFS_IOS15;
-        isOS = IS_IOS15;
+        ERR("Open rd failed");
+        err = -1;
     }
-    LOG("Got root_device: %s", root_device);
+    
+    return err;
+}
+
+
+static inline __attribute__((always_inline)) int main2_bindfs(void)
+{
     
     LOG("Remounting fs");
     {
@@ -358,6 +400,69 @@ int main(void) {
         goto fatal_err;
     }
     
+fatal_err:
+    FATAL("see you my friend...");
+    spin();
+    
+    return 0;
+}
+
+int main(void) {
+    int console = open("/dev/console", O_RDWR, 0);
+    sys_dup2(console, 0);
+    sys_dup2(console, 1);
+    sys_dup2(console, 2);
+    
+    puts("#==================\n");
+    puts("#\n");
+    puts("# kok3shi loader\n");
+    puts("#\n");
+    puts("# (c) 2023 sakuRdev\n");
+    puts("#==================\n");
+    
+    LOG("Checking rootfs");
+    {
+        while ((stat(ROOTFS_IOS16, statbuf)) &&
+               (stat(ROOTFS_IOS15, statbuf)))
+        {
+            LOG("Waiting for roots...");
+            sleep(1);
+        }
+    }
+    
+    if(stat(ROOTFS_IOS15, statbuf))
+    {
+        root_device = ROOTFS_IOS16;
+        isOS = IS_IOS16;
+    }
+    else
+    {
+        root_device = ROOTFS_IOS15;
+        isOS = IS_IOS15;
+    }
+    
+    if(!root_device)
+    {
+        FATAL("Failed to get root_device");
+        goto fatal_err;
+    }
+    
+    LOG("Got root_device: %s", root_device);
+    
+    if(getFlags())
+    {
+        pflags = checkrain_option_failure;
+    }
+    
+    if(checkrain_option_enabled(checkrain_option_bind_mount, pflags))
+    {
+        return main2_bindfs();
+    }
+    else
+    {
+        FATAL("WEN ETA ROOTFULL?");
+        goto fatal_err;
+    }
     
 fatal_err:
     FATAL("see you my friend...");

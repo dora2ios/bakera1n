@@ -72,7 +72,9 @@ enum AUTOBOOT_STAGE {
 
 enum AUTOBOOT_STAGE CURRENT_STAGE = NONE;
 
-bool use_autoboot = false;
+static bool use_autoboot = false;
+static bool use_bindfs = false;
+
 char* bootArgs = NULL;
 uint32_t kpf_flags = checkrain_option_none;
 uint32_t checkra1n_flags = checkrain_option_none;
@@ -623,6 +625,11 @@ static void* io_main(void *arg)
                     if(CURRENT_STAGE == SETUP_STAGE_CHECKRAIN_FLAGS)
                     {
                         
+                        if(use_bindfs)
+                        {
+                            checkra1n_flags |= checkrain_option_bind_mount;
+                        }
+                        
                         char str[64];
                         memset(&str, 0x0, 64);
                         sprintf(str, "checkra1n_flags 0x%08x\n", checkra1n_flags);
@@ -866,10 +873,11 @@ int main(int argc, char** argv)
         { "autoboot",       no_argument,       NULL, 'a' },
         { "noBlockIO",      no_argument,       NULL, 'n' },
         { "extra-bootargs", required_argument, NULL, 'e' },
+        { "bindfs",         no_argument,       NULL, 'b' },
         { NULL, 0, NULL, 0 }
     };
     
-    while ((opt = getopt_long(argc, argv, "ahne:", longopts, NULL)) > 0) {
+    while ((opt = getopt_long(argc, argv, "ahne:b", longopts, NULL)) > 0) {
         switch (opt) {
             case 'h':
                 usage(argv[0]);
@@ -889,6 +897,10 @@ int main(int argc, char** argv)
                     bootArgs = strdup(optarg);
                     LOG("set bootArgs: [%s]", bootArgs);
                 }
+                break;
+                
+            case 'b':
+                use_bindfs = 1;
                 break;
                 
             default:
