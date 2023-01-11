@@ -114,13 +114,13 @@ mv payload.dylib $VOLUME/haxx.dylib
 chown root:wheel $VOLUME/haxx.dylib
 chmod 0755 $VOLUME/haxx.dylib
 
-# inject dylib for launchd
-#xcrun -sdk iphoneos clang -arch arm64 -shared src/libpayload2.c -o payload2.dylib
-#strip payload2.dylib
-#ldid -S payload2.dylib
-#mv payload2.dylib $VOLUME/payload2.dylib
-#chown root:wheel $VOLUME/payload2.dylib
-#chmod 0755 $VOLUME/payload2.dylib
+# inject rootfull dylib for launchd
+#xcrun -sdk iphoneos clang -arch arm64 -shared src/libpayload_rootful.c -o payload.dylib
+#strip payload.dylib
+#ldid -S payload.dylib
+#mv payload2.dylib $VOLUME/haxz.dylib
+#chown root:wheel $VOLUME/haxz.dylib
+#chmod 0755 $VOLUME/haxz.dylib
 
 # payload
 xcrun -sdk iphoneos clang -arch arm64 src/payload.m -o payload -framework IOKit -framework CoreFoundation -framework Foundation

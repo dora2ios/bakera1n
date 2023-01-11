@@ -273,31 +273,31 @@ static inline __attribute__((always_inline)) int runCmd(const char *cmd, char * 
     return rv;
 }
 
-static inline __attribute__((always_inline)) int earlyRunCmd(const char *cmd, char * const *args)
-{
-    pid_t pid;
-    posix_spawn_file_actions_t *actions = NULL;
-    posix_spawn_file_actions_t actionsStruct;
-    int out_pipe[2];
-    bool valid_pipe = false;
-    posix_spawnattr_t *attr = NULL;
-    posix_spawnattr_t attrStruct;
-    
-    int rv = posix_spawn(&pid, cmd, actions, attr, (char *const *)args, environ);
-    
-    if (rv == 0) {
-//        if (waitpid(pid, &rv, 0) == -1) {
-//            ERR("Waitpid failed");
-//        } else {
-//            LOG("completed with exit status %d[%s]", WEXITSTATUS(rv), cmd);
-        LOG("haxx");
-//        }
-    } else {
-        ERR("posix_spawn failed (%d[%s]): %s", rv, cmd, strerror(rv));
-    }
-    
-    return rv;
-}
+//static inline __attribute__((always_inline)) int earlyRunCmd(const char *cmd, char * const *args)
+//{
+//    pid_t pid;
+//    posix_spawn_file_actions_t *actions = NULL;
+//    posix_spawn_file_actions_t actionsStruct;
+//    int out_pipe[2];
+//    bool valid_pipe = false;
+//    posix_spawnattr_t *attr = NULL;
+//    posix_spawnattr_t attrStruct;
+//    
+//    int rv = posix_spawn(&pid, cmd, actions, attr, (char *const *)args, environ);
+//    
+//    if (rv == 0) {
+////        if (waitpid(pid, &rv, 0) == -1) {
+////            ERR("Waitpid failed");
+////        } else {
+////            LOG("completed with exit status %d[%s]", WEXITSTATUS(rv), cmd);
+//        LOG("haxx");
+////        }
+//    } else {
+//        ERR("posix_spawn failed (%d[%s]): %s", rv, cmd, strerror(rv));
+//    }
+//    
+//    return rv;
+//}
 
 
 static inline __attribute__((always_inline)) int makeRSA(void)
@@ -351,7 +351,7 @@ static inline __attribute__((always_inline)) void UICacheForRootlessApplications
             char *pp = NULL;
             asprintf(&pp,"/var/jb/Applications/%s", dir->d_name);
 
-            char *args[] = { "/binpack/usr/bin/uicache", "-f", "-p", pp, NULL };
+            char *args[] = { "/var/jb/usr/bin/uicache", "-f", "-p", pp, NULL };
             runCmd(args[0], args);
 
             free(pp);
@@ -422,57 +422,57 @@ static inline __attribute__((always_inline)) int startEllekit(void)
 }
 
 
-static inline __attribute__((always_inline)) int LaunchdGang(int argc, char **argv)
-{
-    DEVLOG("Detected first boot, hello shit");
-    
-    int i=0;
-    while(environ[i] != NULL)
-    {
-        DEVLOG("env[%d]: %s", i, environ[i]);
-        i++;
-    }
-    
-    char* oldEnv = getenv("DYLD_INSERT_LIBRARIES");
-    DEVLOG("oldEnv: %s", oldEnv);
-    
-    char newEnv[256];
-    if(oldEnv == NULL)
-    {
-        sprintf(newEnv, "%s", "/payload.dylib");
-        DEVLOG("newEnv: %s", newEnv);
-    }
-    else if(strstr(oldEnv, "/payload.dylib") == NULL)
-    {
-        if((strlen(oldEnv) + 1 + sizeof("/payload.dylib")) > 256)
-        {
-            ERR("shit... cleaning...");
-            sprintf(newEnv, "%s", "/payload.dylib");
-        } else {
-            sprintf(newEnv, "%s:%s", "/payload.dylib", oldEnv);
-        }
-        DEVLOG("newEnv: %s", newEnv);
-    } else {
-        sprintf(newEnv, "%s", oldEnv);
-        DEVLOG("newEnv: %s", newEnv);
-    }
-    
-    close(0x0);
-    close(0x1);
-    close(0x2);
-    
-    // clearing oldEnv
-    unsetenv("DYLD_INSERT_LIBRARIES");
-    
-    // set NewEnv
-    setenv("DYLD_INSERT_LIBRARIES", newEnv, 0x1);
-    char *args[] = { "/sbin/launchd", "-s", NULL };
-    int err = execve("/sbin/launchd", args, environ);
-    
-    ERR("What the HELL?!");
-    spin();
-    return -1;
-}
+//static inline __attribute__((always_inline)) int LaunchdGang(int argc, char **argv)
+//{
+//    DEVLOG("Detected first boot, hello shit");
+//
+//    int i=0;
+//    while(environ[i] != NULL)
+//    {
+//        DEVLOG("env[%d]: %s", i, environ[i]);
+//        i++;
+//    }
+//
+//    char* oldEnv = getenv("DYLD_INSERT_LIBRARIES");
+//    DEVLOG("oldEnv: %s", oldEnv);
+//
+//    char newEnv[256];
+//    if(oldEnv == NULL)
+//    {
+//        sprintf(newEnv, "%s", "/payload.dylib");
+//        DEVLOG("newEnv: %s", newEnv);
+//    }
+//    else if(strstr(oldEnv, "/payload.dylib") == NULL)
+//    {
+//        if((strlen(oldEnv) + 1 + sizeof("/payload.dylib")) > 256)
+//        {
+//            ERR("shit... cleaning...");
+//            sprintf(newEnv, "%s", "/payload.dylib");
+//        } else {
+//            sprintf(newEnv, "%s:%s", "/payload.dylib", oldEnv);
+//        }
+//        DEVLOG("newEnv: %s", newEnv);
+//    } else {
+//        sprintf(newEnv, "%s", oldEnv);
+//        DEVLOG("newEnv: %s", newEnv);
+//    }
+//
+//    close(0x0);
+//    close(0x1);
+//    close(0x2);
+//
+//    // clearing oldEnv
+//    unsetenv("DYLD_INSERT_LIBRARIES");
+//
+//    // set NewEnv
+//    setenv("DYLD_INSERT_LIBRARIES", newEnv, 0x1);
+//    char *args[] = { "/sbin/launchd", "-s", NULL };
+//    int err = execve("/sbin/launchd", args, environ);
+//
+//    ERR("What the HELL?!");
+//    spin();
+//    return -1;
+//}
 
 static inline __attribute__((always_inline)) int ReloadSystem(void)
 {
@@ -493,13 +493,9 @@ static inline __attribute__((always_inline)) int ReloadSystem(void)
     
     if(!notBinpack)
     {
-        DEVLOG("running makeRSA");
-        makeRSA();
-        DEVLOG("running startDropbear");
-        startDropbear();
-        
-        if(stat("/var/jb", &st))
+        if(stat("/private/var/dropbear_rsa_host_key", &st))
         {
+            // first boot time
             DEVLOG("injecting SBShowNonDefaultSystemApps");
             
             char *arg1[] = { "/binpack/usr/bin/killall", "-SIGSTOP", "cfprefsd", NULL };
@@ -515,6 +511,11 @@ static inline __attribute__((always_inline)) int ReloadSystem(void)
             char *arg3[] = { "/binpack/usr/sbin/chown", "501:501", "/var/mobile/Library/Preferences/com.apple.springboard.plist", NULL };
             runCmd(arg3[0], arg3);
         }
+        
+        DEVLOG("running makeRSA");
+        makeRSA();
+        DEVLOG("running startDropbear");
+        startDropbear();
     }
     
 //    if(!stat("/var/jb/.installed_kok3shi", &st) && !checkrain_option_enabled(checkrain_option_safemode, pflags))
@@ -543,6 +544,8 @@ static inline __attribute__((always_inline)) int Stage4EarlyGang(int argc, char 
     
     task_policy_t *policy_info = (task_policy_t*)1;
     task_policy_set(mach_task_self(), 1, (task_policy_t)&policy_info, 1);
+    
+    // WEN ETA
     
     close(0x0);
     close(0x1);
@@ -688,14 +691,14 @@ int main(int argc, char **argv)
     DEVLOG("pid: %d", pid);
     DEVLOG("arg: %s", argv[0]);
     
-    if (getpid() == 0x1) {
-        argv[0] = "launchd";
-    }
-    
-    if(strcmp(argv[0], "launchd") == 0x0)
-    {
-        return LaunchdGang(argc, argv);
-    }
+//    if (getpid() == 0x1) {
+//        argv[0] = "launchd";
+//    }
+//
+//    if(strcmp(argv[0], "launchd") == 0x0)
+//    {
+//        return LaunchdGang(argc, argv);
+//    }
     
     if(strcmp(argv[0], "stage4early") == 0x0)
     {
