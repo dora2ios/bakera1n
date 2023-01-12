@@ -203,7 +203,7 @@ if [ $1 == "-u" ]; then
   exit
  fi
  
- echo 'This will now update the writable rootfs basesystem.'
+ echo '[!] This will now update the writable rootfs basesystem.'
  read -p "[!] really ok? (y/n): " yn
  case "$yn" in [yY]*) ;; *) echo "exit." ; exit ;; esac
  

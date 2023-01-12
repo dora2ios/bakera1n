@@ -346,12 +346,12 @@ int main(void) {
     sys_dup2(console, 1);
     sys_dup2(console, 2);
     
-    puts("#==================\n");
-    puts("#\n");
-    puts("# bakera1n loader\n");
-    puts("#\n");
-    puts("# (c) 2023 sakuRdev\n");
-    puts("#==================\n");
+    printf("#==================\n");
+    printf("#\n");
+    printf("# bakera1n loader rootful %s\n", VERSION);
+    printf("#\n");
+    printf("# (c) 2023 bakera1n developer\n");
+    printf("#==================\n");
     
     LOG("Checking rootfs");
     {

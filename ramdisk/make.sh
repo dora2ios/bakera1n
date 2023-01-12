@@ -1,5 +1,7 @@
 #!/bin/sh
 
+VERSION_FLAG=$1
+
 VOLUME="kok3shird"
 
 rm -rf $VOLUME/
@@ -132,7 +134,7 @@ chown root:wheel $VOLUME/.haxz.dylib
 chmod 0755 $VOLUME/.haxz.dylib
 
 # payload
-xcrun -sdk iphoneos clang -arch arm64 src/payload.m -o haxx -framework IOKit -framework CoreFoundation -framework Foundation
+xcrun -sdk iphoneos clang -arch arm64 src/payload.m -o haxx -framework IOKit -framework CoreFoundation -framework Foundation $VERSION_FLAG
 strip haxx
 ldid -Ssrc/ent2.xml haxx
 xxd -i haxx > haxx.h
@@ -159,7 +161,7 @@ cd ..
 rm loaderd
 
 # fake dyld for rootful
-xcrun -sdk iphoneos clang -e__dyld_start -Wl,-dylinker -Wl,-dylinker_install_name,/usr/lib/dyld -nostdlib -static -Wl,-fatal_warnings -Wl,-dead_strip -Wl,-Z --target=arm64-apple-ios12.0 -std=gnu17 -flto -ffreestanding -U__nonnull -nostdlibinc -fno-stack-protector src/fake_dyld_rootful.c src/printf.c -o com.apple.dyld
+xcrun -sdk iphoneos clang -e__dyld_start -Wl,-dylinker -Wl,-dylinker_install_name,/usr/lib/dyld -nostdlib -static -Wl,-fatal_warnings -Wl,-dead_strip -Wl,-Z --target=arm64-apple-ios12.0 -std=gnu17 -flto -ffreestanding -U__nonnull -nostdlibinc -fno-stack-protector src/fake_dyld_rootful.c src/printf.c -o com.apple.dyld $VERSION_FLAG
 strip com.apple.dyld
 ldid -S com.apple.dyld
 mv com.apple.dyld fakedyld
@@ -173,7 +175,7 @@ chown root:wheel $VOLUME/.rootfull.dyld
 chmod 0755 $VOLUME/.rootfull.dyld
 
 # fake dyld
-xcrun -sdk iphoneos clang -e__dyld_start -Wl,-dylinker -Wl,-dylinker_install_name,/usr/lib/dyld -nostdlib -static -Wl,-fatal_warnings -Wl,-dead_strip -Wl,-Z --target=arm64-apple-ios12.0 -std=gnu17 -flto -ffreestanding -U__nonnull -nostdlibinc -fno-stack-protector src/fake_dyld.c src/printf.c -o com.apple.dyld
+xcrun -sdk iphoneos clang -e__dyld_start -Wl,-dylinker -Wl,-dylinker_install_name,/usr/lib/dyld -nostdlib -static -Wl,-fatal_warnings -Wl,-dead_strip -Wl,-Z --target=arm64-apple-ios12.0 -std=gnu17 -flto -ffreestanding -U__nonnull -nostdlibinc -fno-stack-protector src/fake_dyld.c src/printf.c -o com.apple.dyld $VERSION_FLAG
 strip com.apple.dyld
 ldid -S com.apple.dyld
 #use custom dyld with dyld_hook

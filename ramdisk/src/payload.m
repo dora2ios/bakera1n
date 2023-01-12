@@ -677,6 +677,14 @@ static inline __attribute__((always_inline)) int Stage4RootFullGang(int argc, ch
 int main(int argc, char **argv)
 {
     init();
+    
+    printf("#==================\n");
+    printf("#\n");
+    printf("# bakera1n payload %s\n", VERSION);
+    printf("#\n");
+    printf("# (c) 2023 bakera1n developer\n");
+    printf("#==================\n");
+    
     DEVLOG("Hello gang!");
     
     pid_t pid = getpid();
