@@ -209,16 +209,9 @@ if [ $1 == "-u" ]; then
  
  newroot=$disk's'${i}
 
- mkdir /tmp/mnt0
  mkdir /tmp/mnt1
 
- /binpack/usr/bin/snaputil -s $(snaputil -o) / /tmp/mnt0
  /sbin/mount_apfs $newroot /tmp/mnt1
-
- if !stat /tmp/mnt0/bin >/dev/null 2>&1; then
-  echo '[-] snapshot is not mounted correctly.'
-  echo '[-] WTF!?'
- fi
 
  ayyy=$(mount | grep $newroot | cut -d ' ' -f1)
  if [ $ayyy != $newroot ]; then
@@ -252,7 +245,6 @@ if [ $1 == "-u" ]; then
  /binpack/bin/sync
  /binpack/bin/sync
  /binpack/bin/sync
- /sbin/umount -f /tmp/mnt0
  /sbin/umount -f /tmp/mnt1
  /binpack/bin/sync
  /binpack/bin/sync
