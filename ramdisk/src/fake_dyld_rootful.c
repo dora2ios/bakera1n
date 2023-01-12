@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include "printf.h"
 
-//#define DEVBUILD 1
+#define DEVBUILD 1
 
 #define LOG(x, ...) \
 do { \
@@ -348,7 +348,7 @@ int main(void) {
     
     puts("#==================\n");
     puts("#\n");
-    puts("# kok3shi loader\n");
+    puts("# bakera1n loader\n");
     puts("#\n");
     puts("# (c) 2023 sakuRdev\n");
     puts("#==================\n");

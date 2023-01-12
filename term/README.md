@@ -3,7 +3,7 @@
 ### usage  
 ```
 ./bakera1n_loader -h
-Usage: ./kok3shi_pongoloader [-ahn] [-e <boot-args>]
+Usage: ./bakera1n_loader [-abhn] [-e <boot-args>] [-r <root_device>]
 -h, --help                  : show usage
 -a, --autoboot              : enable bakera1n boot mode
 -n, --noBlockIO             : noBlockIO
@@ -15,6 +15,9 @@ Usage: ./kok3shi_pongoloader [-ahn] [-e <boot-args>]
 ## how to boot  
 
 - ... for rootful
+
+### warn  
+*!! Never update diskev-cmds.!! *  
 
 ### 1st boot
 ```

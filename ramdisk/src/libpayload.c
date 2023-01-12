@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <dlfcn.h>
@@ -72,6 +73,10 @@ xpc_object_t my_xpc_dictionary_get_value(xpc_object_t dict, const char *key)
         // payload
         xpc_object_t programArguments = xpc_array_create(NULL, 0);
         xpc_array_append_value(programArguments, xpc_string_create("stage4gang"));
+        if(getenv("XPC_USERSPACE_REBOOTED"))
+        {
+            xpc_array_append_value(programArguments, xpc_string_create("-i"));
+        }
         
         xpc_object_t job = xpc_dictionary_create(NULL, NULL, 0);
         xpc_dictionary_set_bool(job, "KeepAlive", false);

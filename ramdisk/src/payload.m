@@ -31,7 +31,7 @@ task_policy_set(
                 task_policy_t           policy_info,
                 mach_msg_type_number_t  count);
 
-//#define DEVBUILD 1
+#define DEVBUILD 1
 
 #define checkrain_option_none               0x00000000
 #define checkrain_option_all                0x7fffffff
@@ -44,7 +44,8 @@ task_policy_set(
 
 typedef uint32_t checkrain_option_t, *checkrain_option_p;
 
-checkrain_option_t pflags;
+static checkrain_option_t pflags;
+static bool userspace_reboot = false;
 
 struct kerninfo {
     uint64_t size;
@@ -418,64 +419,17 @@ static inline __attribute__((always_inline)) void startRCDRootFull(void)
     }
 }
 
-static inline __attribute__((always_inline)) int startEllekit(void)
+static inline __attribute__((always_inline)) int startRootlessEllekit(void)
 {
     char *args[] = { "/var/jb/usr/libexec/ellekit/loader", NULL };
     return runCmd(args[0], args);
 }
 
-
-//static inline __attribute__((always_inline)) int LaunchdGang(int argc, char **argv)
-//{
-//    DEVLOG("Detected first boot, hello shit");
-//
-//    int i=0;
-//    while(environ[i] != NULL)
-//    {
-//        DEVLOG("env[%d]: %s", i, environ[i]);
-//        i++;
-//    }
-//
-//    char* oldEnv = getenv("DYLD_INSERT_LIBRARIES");
-//    DEVLOG("oldEnv: %s", oldEnv);
-//
-//    char newEnv[256];
-//    if(oldEnv == NULL)
-//    {
-//        sprintf(newEnv, "%s", "/payload.dylib");
-//        DEVLOG("newEnv: %s", newEnv);
-//    }
-//    else if(strstr(oldEnv, "/payload.dylib") == NULL)
-//    {
-//        if((strlen(oldEnv) + 1 + sizeof("/payload.dylib")) > 256)
-//        {
-//            ERR("shit... cleaning...");
-//            sprintf(newEnv, "%s", "/payload.dylib");
-//        } else {
-//            sprintf(newEnv, "%s:%s", "/payload.dylib", oldEnv);
-//        }
-//        DEVLOG("newEnv: %s", newEnv);
-//    } else {
-//        sprintf(newEnv, "%s", oldEnv);
-//        DEVLOG("newEnv: %s", newEnv);
-//    }
-//
-//    close(0x0);
-//    close(0x1);
-//    close(0x2);
-//
-//    // clearing oldEnv
-//    unsetenv("DYLD_INSERT_LIBRARIES");
-//
-//    // set NewEnv
-//    setenv("DYLD_INSERT_LIBRARIES", newEnv, 0x1);
-//    char *args[] = { "/sbin/launchd", "-s", NULL };
-//    int err = execve("/sbin/launchd", args, environ);
-//
-//    ERR("What the HELL?!");
-//    spin();
-//    return -1;
-//}
+static inline __attribute__((always_inline)) int startSubstitute(void)
+{
+    char *args[] = { "/etc/rc.d/substitute-launcher", NULL };
+    return runCmd(args[0], args);
+}
 
 static inline __attribute__((always_inline)) int ReloadSystem(void)
 {
@@ -631,6 +585,7 @@ static inline __attribute__((always_inline)) int ReloadSystemRootFull(void)
     int hasDYLDcache = 0;
     // ios 16.0 - 16.1.2
     if( // !stat("/etc/rc.d/substitute-launcher", &st) &&
+       !userspace_reboot &&
        (kCFCoreFoundationVersionNumber <= kCFCoreFoundationVersionNumber_iOS_16_1_2) &&
        (kCFCoreFoundationVersionNumber > kCFCoreFoundationVersionNumber_iOS_16))
     {
@@ -654,6 +609,10 @@ static inline __attribute__((always_inline)) int ReloadSystemRootFull(void)
             }
         }
     }
+    else if(userspace_reboot)
+    {
+        DEVLOG("already loaded");
+    }
     else if(kCFCoreFoundationVersionNumber < kCFCoreFoundationVersionNumber_iOS_16)
     {
         // ios 15
@@ -664,19 +623,32 @@ static inline __attribute__((always_inline)) int ReloadSystemRootFull(void)
         DEVLOG("substitute is not supported yet.");
     }
     
-    if(hasDYLDcache)
+    if(hasDYLDcache && !userspace_reboot && !stat("/etc/rc.d/substitute-launcher", &st))
     {
-        DEVLOG("loading rc.d");
-        startRCDRootFull();
+        DEVLOG("loading substitute");
+        startSubstitute();
+        
+        DEVLOG("rebooting userspace...");
+        
+        char* lauchchctl_path = NULL;
+        if(!stat("/binpack/bin/launchctl", &st))
+            lauchchctl_path = "/binpack/bin/launchctl";
+        else if(!stat("/bin/launchctl", &st))
+            lauchchctl_path = "/bin/launchctl";
+            
+        if(lauchchctl_path)
+        {
+            char *args[] = { lauchchctl_path, "reboot", "userspace", NULL };
+            return runCmd(args[0], args);
+        }
+        
     }
+    
     DEVLOG("loading deamons");
     startJBDeamonsRootFull();
     sync();
     sync();
     sync();
-    
-    char *args[] = { "/usr/bin/sbreload", NULL };
-    runCmd(args[0], args);
     
     return 0;
 }
@@ -711,14 +683,28 @@ int main(int argc, char **argv)
     DEVLOG("pid: %d", pid);
     DEVLOG("arg: %s", argv[0]);
     
-//    if (getpid() == 0x1) {
-//        argv[0] = "launchd";
-//    }
-//
-//    if(strcmp(argv[0], "launchd") == 0x0)
-//    {
-//        return LaunchdGang(argc, argv);
-//    }
+    
+    int i = 0;
+    while(environ[i] != NULL)
+    {
+        DEVLOG("env[%d]: %s", i, environ[i]);
+        i++;
+    }
+    
+    i = 0;
+    while(argv[i] != NULL)
+    {
+        DEVLOG("argv[%d]: %s", i, argv[i]);
+        i++;
+    }
+    
+    if(argc == 2)
+    {
+        if(!strcmp(argv[1], "-i"))
+            userspace_reboot = true;
+    }
+    
+    DEVLOG("userspace_reboot: %d", userspace_reboot);
     
     if(strcmp(argv[0], "stage4early") == 0x0)
     {

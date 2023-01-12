@@ -16,10 +16,22 @@ rootless mode (with bindfs edition) may cause bootloop.
 Also, this should never be done on anything other than a research device.  
 At your own risk!  
 
+
 ## how to use?
 You need to turn on developer mode to do this for iOS 16.  
 Also, never set a passcode for A11. If you set a passcode, you will not be able to use this tool until you initialize the device.  
 In other words, device security is severely compromised for the use of this tool, and it is recommended that it not be run on anything other than research devices.  
+
+
+## how to make rootfull mode  
+*(ios 15.0 - 16.1.2 only)*  
+
+### warn  
+*!! Never update diskev-cmds.!! *  
+
+### ETA
+SON  
+
 
 ## credit
 binpack: procursus  
