@@ -337,6 +337,12 @@ static inline __attribute__((always_inline)) int startDropbear(void)
     return runCmd(args[0], args);
 }
 
+static inline __attribute__((always_inline)) int UICacheForRootFul(void)
+{
+    char *args[] = { "/usr/bin/uicache", "-a", NULL };
+    return runCmd(args[0], args);
+}
+
 static inline __attribute__((always_inline)) int UICacheForLoader(void)
 {
     char *args[] = { "/binpack/usr/bin/uicache", "-f", "-p", "/binpack/Applications/loader.app", NULL };
@@ -554,34 +560,6 @@ static inline __attribute__((always_inline)) int ReloadSystemRootFull(void)
         runCmd(args[0], args);
     }
     
-    if(!notBinpack)
-    {
-        DEVLOG("running makeRSA");
-        makeRSA();
-        DEVLOG("running startDropbear");
-        startDropbear();
-        
-        if(stat("/.installed_kok3shi", &st))
-        {
-            DEVLOG("injecting SBShowNonDefaultSystemApps");
-            
-            char *arg1[] = { "/binpack/usr/bin/killall", "-SIGSTOP", "cfprefsd", NULL };
-            runCmd(arg1[0], arg1);
-            
-            NSMutableDictionary* md = [[NSMutableDictionary alloc] initWithContentsOfFile:@"/var/mobile/Library/Preferences/com.apple.springboard.plist"];
-            [md setObject:[NSNumber numberWithBool:YES] forKey:@"SBShowNonDefaultSystemApps"];
-            [md writeToFile:@"/var/mobile/Library/Preferences/com.apple.springboard.plist" atomically:YES];
-            
-            char *arg2[] = { "/binpack/usr/bin/killall", "-9", "cfprefsd", NULL };
-            runCmd(arg2[0], arg2);
-            
-            char *arg3[] = { "/binpack/usr/sbin/chown", "501:501", "/var/mobile/Library/Preferences/com.apple.springboard.plist", NULL };
-            runCmd(arg3[0], arg3);
-            
-            open("/.installed_kok3shi", O_RDWR|O_CREAT);
-        }
-    }
-    
     int hasDYLDcache = 0;
     // ios 16.0 - 16.1.2
     if( // !stat("/etc/rc.d/substitute-launcher", &st) &&
@@ -635,7 +613,7 @@ static inline __attribute__((always_inline)) int ReloadSystemRootFull(void)
             lauchchctl_path = "/binpack/bin/launchctl";
         else if(!stat("/bin/launchctl", &st))
             lauchchctl_path = "/bin/launchctl";
-            
+        
         if(lauchchctl_path)
         {
             char *args[] = { lauchchctl_path, "reboot", "userspace", NULL };
@@ -644,9 +622,38 @@ static inline __attribute__((always_inline)) int ReloadSystemRootFull(void)
         
     }
     
+    if(!notBinpack)
+    {
+        DEVLOG("running makeRSA");
+        makeRSA();
+        DEVLOG("running startDropbear");
+        startDropbear();
+        
+        if(stat("/.installed_kok3shi", &st))
+        {
+            DEVLOG("injecting SBShowNonDefaultSystemApps");
+            
+            char *arg1[] = { "/binpack/usr/bin/killall", "-SIGSTOP", "cfprefsd", NULL };
+            runCmd(arg1[0], arg1);
+            
+            NSMutableDictionary* md = [[NSMutableDictionary alloc] initWithContentsOfFile:@"/var/mobile/Library/Preferences/com.apple.springboard.plist"];
+            [md setObject:[NSNumber numberWithBool:YES] forKey:@"SBShowNonDefaultSystemApps"];
+            [md writeToFile:@"/var/mobile/Library/Preferences/com.apple.springboard.plist" atomically:YES];
+            
+            char *arg2[] = { "/binpack/usr/bin/killall", "-9", "cfprefsd", NULL };
+            runCmd(arg2[0], arg2);
+            
+            char *arg3[] = { "/binpack/usr/sbin/chown", "501:501", "/var/mobile/Library/Preferences/com.apple.springboard.plist", NULL };
+            runCmd(arg3[0], arg3);
+            
+            open("/.installed_kok3shi", O_RDWR|O_CREAT);
+        }
+    }
+    
     DEVLOG("loading deamons");
     startJBDeamonsRootFull();
     sync();
+    UICacheForRootFul();
     sync();
     sync();
     
