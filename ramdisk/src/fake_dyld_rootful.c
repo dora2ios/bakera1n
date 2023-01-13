@@ -264,6 +264,44 @@ static inline __attribute__((always_inline)) int main2_rootfull(void)
         }
     }
     
+    if (!stat("/.bind_system", statbuf)) {
+        DEVLOG("Found bind flag");
+        {
+            char *mntpath = "/fs/orig";
+            DEVLOG("Mounting non-snapshot rootfs to %s", mntpath);
+            
+            int err = 0;
+            char buf[0x100];
+            struct mounarg {
+                char *path;
+                uint64_t _null;
+                uint64_t mountAsRaw;
+                uint32_t _pad;
+                char snapshot[0x100];
+            } arg = {
+                root_device,
+                0,
+                MOUNT_WITHOUT_SNAPSHOT,
+                0,
+            };
+            
+        retry_snapshot_mount:
+            err = mount("apfs", mntpath, MNT_RDONLY, &arg);
+            if (err) {
+                ERR("Failed to mount rootfs (%d)", err);
+                sleep(1);
+                goto retry_snapshot_mount;
+            }
+            if (stat("/fs/orig/private/", statbuf)) {
+                FATAL("Failed to find directory.");
+                goto fatal_err;
+            }
+        }
+        if (mount("bindfs", "/System", 0, "/fs/orig/System")) goto error_bindfs;
+        if (mount("bindfs", "/usr/standalone/update", 0, "/fs/orig/usr/standalone/update")) goto error_bindfs;
+    }
+    
+    
     LOG("Binding rootfs");
     {
         if (mount("bindfs", "/fs/gen", 0, "/fs/fake")) goto error_bindfs;

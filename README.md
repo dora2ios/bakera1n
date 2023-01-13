@@ -14,6 +14,8 @@ A rootless/rootful jailbreak toolkit for A8 - A11 / iOS 15.0 - 16(.1.2) for *dev
 ## warn
 rootless mode (with bindfs edition) may cause bootloop.  
 Also, this should never be done on anything other than a research device.  
+There may be a rare failure to power off the device.  
+Also, possibly messing up the icon cache.  
 At your own risk!  
 
 
@@ -29,24 +31,37 @@ In other words, device security is severely compromised for the use of this tool
 ### warn  
 *!! Never update diskev-cmds.!! *  
 
-### 1st boot
+### (1) 1st boot
 ```
 ./checkra1n -pvE
 ./bakera1n_loader -a
 ```
 
-### connect to iOS device via dropbear
+### (2) run iproxy (from libimobiledevice)
 ```
 iproxy <port>:44
+```
+
+### (3) connect to iOS device via dropbear
+```
 ssh root@localhost -p <port>
 ```
 
-### create writable partition (iOS side)  
+### (4) create [full] writable partition [for 32GB+ devices] (iOS side)  
 ```
 /fsutil.sh -c
 ```
 
-### check writable partition (iOS side)  
+### (4) create [partial] writable partition [for 16GB devices] (iOS side)  
+- *This mode is still in the testing stage.  
+- If you have already created a full writable partition, skip this step.
+
+- *At your own risk!
+```
+/fsutil.sh -p
+```
+
+### (5) check writable partition (iOS side)  
 ```
 /fsutil.sh -s
 ...
@@ -54,19 +69,18 @@ ssh root@localhost -p <port>
 ```
 - this case, root_device is `disk0s1s8`  
 
-### rootful boot (if root_device = `disk0s1s8`)
+### (6) rootful boot (if root_device = `disk0s1s8`)
 ```
 ./checkra1n -pvE
 ./bakera1n_loader -a -r disk0s1s8
 ```
 
-### connect to iOS device via dropbear
+### (7) connect to iOS device via dropbear
 ```
-iproxy <port>:44
 ssh root@localhost -p <port>
 ```
 
-### install bootstrap (iOS side)  
+### (8) install bootstrap (iOS side)  
 ```
 /binpack/usr/bin/curl -sLO https://cdn.discordapp.com/attachments/1017153024768081921/1026161261077090365/bootstrap-ssh.tar
 /binpack/usr/bin/curl -sLO https://github.com/coolstar/Odyssey-bootstrap/raw/master/org.swift.libswift_5.0-electra2_iphoneos-arm.deb
@@ -80,7 +94,7 @@ rm org.swift.libswift_5.0-electra2_iphoneos-arm.deb
 rm bootstrap-ssh.tar
 ```
 
-### install substitute (iOS 15.0-16.1.2) (iOS side)  
+### (option) install substitute (iOS 15.0-16.1.2) (iOS side)  
 ```
 /binpack/usr/bin/curl -sLO https://apt.bingner.com/debs/1443.00/com.ex.substitute_2.3.1_iphoneos-arm.deb
 /binpack/usr/bin/curl -sLO https://apt.bingner.com/debs/1443.00/com.saurik.substrate.safemode_0.9.6005_iphoneos-arm.deb
