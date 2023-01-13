@@ -28,7 +28,7 @@ In other words, device security is severely compromised for the use of this tool
 *(ios 15.0 - 16.1.2 only)*  
 
 ### warn  
-*!! Never update diskev-cmds.!! *  
+*!! Never update diskev-cmds.!!*  
 
 ### (1) 1st boot
 ```
@@ -52,10 +52,10 @@ ssh root@localhost -p <port>
 ```
 
 ### (4) create [partial] writable partition [for 16GB devices] (iOS side)  
-*This mode is still in the testing stage.  
-*If you have already created a full writable partition, skip this step.
-*No writing to /System under this mode.  
-*At your own risk!
+*This mode is still in the testing stage.*  
+*If you have already created a full writable partition, skip this step.*
+*No writing to /System under this mode.*  
+*At your own risk!*
 ```
 /fsutil.sh -p
 ```
