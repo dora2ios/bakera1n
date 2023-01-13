@@ -53,9 +53,9 @@ ssh root@localhost -p <port>
 
 ### (4) create [partial] writable partition [for 16GB devices] (iOS side)  
 *This mode is still in the testing stage.*  
-*If you have already created a full writable partition, skip this step.*
+*If you have already created a full writable partition, skip this step.*  
 *No writing to /System under this mode.*  
-*At your own risk!*
+*At your own risk!*  
 ```
 /fsutil.sh -p
 ```
