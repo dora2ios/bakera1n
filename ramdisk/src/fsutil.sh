@@ -86,7 +86,7 @@ if [ $1 == "-c" ]; then
  /binpack/usr/bin/snaputil -s $(snaputil -o) / /tmp/mnt0
  /sbin/mount_apfs $newroot /tmp/mnt1
 
- if !/binpack/usr/bin/stat /tmp/mnt0/bin >/dev/null 2>&1; then
+ if ! /binpack/usr/bin/stat /tmp/mnt0/bin >/dev/null 2>&1; then
   echo '[-] snapshot is not mounted correctly.'
   echo '[-] WTF!?'
   exit
@@ -197,7 +197,7 @@ if [ $1 == "-p" ]; then
  /binpack/usr/bin/snaputil -s $(snaputil -o) / /tmp/mnt0
  /sbin/mount_apfs $newroot /tmp/mnt1
 
- if !/binpack/usr/bin/stat /tmp/mnt0/bin >/dev/null 2>&1; then
+ if ! /binpack/usr/bin/stat /tmp/mnt0/bin >/dev/null 2>&1; then
   echo '[-] snapshot is not mounted correctly.'
   echo '[-] WTF!?'
   exit
@@ -384,7 +384,7 @@ if [ $1 == "-u" ]; then
   echo '[-] WTF!?'
  fi
  
- if !/binpack/usr/bin/stat /tmp/mnt1/bin >/dev/null 2>&1; then
+ if ! /binpack/usr/bin/stat /tmp/mnt1/bin >/dev/null 2>&1; then
   echo '[-] new fs is not mounted correctly.'
   echo '[-] WTF!?'
   exit
