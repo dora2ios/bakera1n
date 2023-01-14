@@ -18,6 +18,12 @@
 #include <mach/mach.h>
 #include <mach-o/dyld.h>
 
+#ifdef ROOTFULL
+#define BINNAME "stage4rootfull"
+#else
+#define BINNAME "stage4gang"
+#endif
+
 typedef void* xpc_object_t;
 typedef void* xpc_type_t;
 typedef void* launch_data_t;
@@ -72,7 +78,7 @@ xpc_object_t my_xpc_dictionary_get_value(xpc_object_t dict, const char *key)
     {
         // payload
         xpc_object_t programArguments = xpc_array_create(NULL, 0);
-        xpc_array_append_value(programArguments, xpc_string_create("stage4gang"));
+        xpc_array_append_value(programArguments, xpc_string_create(BINNAME));
         if(getenv("XPC_USERSPACE_REBOOTED"))
         {
             xpc_array_append_value(programArguments, xpc_string_create("-i"));

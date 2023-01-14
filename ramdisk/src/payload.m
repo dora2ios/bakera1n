@@ -1,3 +1,28 @@
+/*
+ * bakera1n - payload.m
+ *
+ * Copyright (c) 2023 dora2ios
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ */
+
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -18,11 +43,12 @@
 #include <errno.h>
 #include <sys/mount.h>
 #include <sys/stat.h>
+#include "log.h"
+
+#include "dropbear.h"
 
 #define kCFCoreFoundationVersionNumber_iOS_16       (1900.0)
 #define kCFCoreFoundationVersionNumber_iOS_16_1_2   (1953.1)
-
-#include "dropbear.h"
 
 extern kern_return_t
 task_policy_set(
@@ -30,8 +56,6 @@ task_policy_set(
                 task_policy_flavor_t    flavor,
                 task_policy_t           policy_info,
                 mach_msg_type_number_t  count);
-
-#define DEVBUILD 1
 
 #define checkrain_option_none               0x00000000
 #define checkrain_option_all                0x7fffffff
@@ -53,26 +77,6 @@ struct kerninfo {
     uint64_t slide;
     checkrain_option_t flags;
 };
-
-#define LOG(x, ...) \
-do { \
-printf("[LOG] "x"\n", ##__VA_ARGS__); \
-} while(0)
-
-#define ERR(x, ...) \
-do { \
-printf("[ERR] "x"\n", ##__VA_ARGS__); \
-} while(0)
-
-
-#ifdef DEVBUILD
-#define DEVLOG(x, ...) \
-do { \
-printf("[DEV] "x"\n", ##__VA_ARGS__); \
-} while(0)
-#else
-#define DEVLOG(x, ...)
-#endif
 
 extern char **environ;
 
