@@ -267,7 +267,7 @@ if [ $1 == "-p" ]; then
  echo '[*] copying /var'
  /binpack/bin/cp -aRp /tmp/mnt0/var /tmp/mnt1/
  
- if [ $ iOS == 16 ]; then
+ if [ $iOS == 16 ]; then
   echo '[*] copying /System/Library/Caches'
   /binpack/bin/mkdir /tmp/mnt1/fs/System
   /binpack/bin/mkdir /tmp/mnt1/fs/System/Library
