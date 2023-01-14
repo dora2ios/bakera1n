@@ -10,7 +10,8 @@
 #include "log.h"
 #include "fake_dyld_utils.h"
 
-static __attribute__((naked)) kern_return_t thread_switch(mach_port_t new_thread, int option, mach_msg_timeout_t time) {
+static __attribute__((naked)) kern_return_t thread_switch(mach_port_t new_thread, int option, mach_msg_timeout_t time)
+{
     asm(
         "movn x16, #0x3c    \n"
         "svc 0x80           \n"
@@ -18,7 +19,8 @@ static __attribute__((naked)) kern_return_t thread_switch(mach_port_t new_thread
         );
 }
 
-static __attribute__((naked)) uint64_t msyscall(uint64_t syscall, ...) {
+static __attribute__((naked)) uint64_t msyscall(uint64_t syscall, ...)
+{
     asm(
         "mov x16, x0            \n"
         "ldp x0, x1, [sp]       \n"
@@ -101,7 +103,8 @@ void _putchar(char character)
     static size_t chrcnt = 0;
     static char buf[0x100];
     buf[chrcnt++] = character;
-    if (character == '\n' || chrcnt == sizeof(buf)){
+    if (character == '\n' || chrcnt == sizeof(buf))
+    {
         write(STDOUT_FILENO, buf, chrcnt);
         chrcnt = 0;
     }
@@ -110,9 +113,8 @@ void _putchar(char character)
 void spin(void)
 {
     ERR("WTF?!");
-    while(1) {
+    while(1)
         sleep(1);
-    }
 }
 
 void memcpy(void *dst, const void *src, size_t n)
