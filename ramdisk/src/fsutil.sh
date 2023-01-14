@@ -40,6 +40,11 @@ if [ $1 == "-c" ]; then
   echo '[-] who are you?!'
   exit
  fi
+ 
+ if stat /var/jb >/dev/null 2>&1; then
+  echo '[-] already installed rootless bootstrap'
+  exit
+ fi
 
  for i in `seq 1 32`; do
   #echo checking $disk's'${i}
@@ -144,6 +149,11 @@ if [ $1 == "-p" ]; then
   disk="/dev/disk0s1"
  else
   echo '[-] who are you?!'
+  exit
+ fi
+ 
+ if stat /var/jb >/dev/null 2>&1; then
+  echo '[-] already installed rootless bootstrap'
   exit
  fi
 
