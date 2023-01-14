@@ -203,52 +203,59 @@ if [ $1 == "-p" ]; then
  echo '[*] copying fs...'
  echo '[!] !!! Do not touch the device !!!!'
  
- echo '[*] /.ba'
+ echo '[*] copying /.ba'
  /binpack/bin/cp -aRp /tmp/mnt0/.ba /tmp/mnt1/
  
- echo '[*] /.file'
+ echo '[*] copying /.file'
  /binpack/bin/cp -aRp /tmp/mnt0/.file /tmp/mnt1/
  
- echo '[*] /.mb'
+ echo '[*] copying /.mb'
  /binpack/bin/cp -aRp /tmp/mnt0/.mb /tmp/mnt1/
  
- echo '[*] /Applications'
+ echo '[*] copying /Applications'
  /binpack/bin/cp -aRp /tmp/mnt0/Applications /tmp/mnt1/
  
- echo '[*] /Developer'
+ echo '[*] copying /Developer'
  /binpack/bin/cp -aRp /tmp/mnt0/Developer /tmp/mnt1/
  
- echo '[*] /Library'
+ echo '[*] copying /Library'
  /binpack/bin/cp -aRp /tmp/mnt0/Library /tmp/mnt1/
  
- echo '[*] /bin'
+ echo '[*] copying /bin'
  /binpack/bin/cp -aRp /tmp/mnt0/bin /tmp/mnt1/
  
- echo '[*] /cores'
+ echo '[*] copying /cores'
  /binpack/bin/cp -aRp /tmp/mnt0/cores /tmp/mnt1/
  
- echo '[*] /dev'
+ echo '[*] copying /dev'
  /binpack/bin/cp -aRp /tmp/mnt0/dev /tmp/mnt1/
  
- echo '[*] /private'
+ echo '[*] copying /private'
  /binpack/bin/cp -aRp /tmp/mnt0/private /tmp/mnt1/
  
- echo '[*] /sbin'
+ echo '[*] copying /sbin'
  /binpack/bin/cp -aRp /tmp/mnt0/sbin /tmp/mnt1/
  
- echo '[*] /usr'
+ echo '[*] copying /usr'
  /binpack/bin/cp -aRp /tmp/mnt0/usr /tmp/mnt1/
  /binpack/bin/rm -rf /tmp/mnt1/usr/standalone/update
  mkdir /tmp/mnt1/usr/standalone/update
  
- echo '[*] /etc'
+ echo '[*] copying /etc'
  /binpack/bin/cp -aRp /tmp/mnt0/etc /tmp/mnt1/
  
- echo '[*] /tmp'
+ echo '[*] copying /tmp'
  /binpack/bin/cp -aRp /tmp/mnt0/tmp /tmp/mnt1/
  
- echo '[*] /var'
+ echo '[*] copying /var'
  /binpack/bin/cp -aRp /tmp/mnt0/var /tmp/mnt1/
+ 
+ echo '[*] SKIP: /System/Library/Caches'
+ /binpack/bin/mkdir /tmp/mnt1/fs
+ /binpack/bin/mkdir /tmp/mnt1/fs/System
+ /binpack/bin/mkdir /tmp/mnt1/fs/System/Library
+ /binpack/bin/cp -aRp /tmp/mnt0/System/Library/Caches /tmp/mnt1/fs/System/Library/
+ /binpack/bin/mkdir /tmp/mnt1/fs/System/Library/Caches/com.apple.dyld
  
  echo '[*] SKIP: /System'
  #/binpack/bin/cp -aRp /tmp/mnt0/System /tmp/mnt1/
@@ -256,7 +263,7 @@ if [ $1 == "-p" ]; then
 
  echo "" > /tmp/mnt1/.bind_system
 
- /binpack/bin/mkdir /tmp/mnt1/fs
+ #/binpack/bin/mkdir /tmp/mnt1/fs
  /binpack/bin/mkdir /tmp/mnt1/fs/gen
  /binpack/bin/mkdir /tmp/mnt1/fs/fake
  /binpack/bin/mkdir /tmp/mnt1/fs/orig

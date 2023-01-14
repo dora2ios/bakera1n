@@ -299,6 +299,8 @@ static inline __attribute__((always_inline)) int main2_rootfull(void)
         }
         if (mount("bindfs", "/System", 0, "/fs/orig/System")) goto error_bindfs;
         if (mount("bindfs", "/usr/standalone/update", 0, "/fs/orig/usr/standalone/update")) goto error_bindfs;
+        if(isOS == IS_IOS16)
+            if (mount("bindfs", "/System/Library/Caches", 0, "/fs/System/Library/Caches")) goto error_bindfs;
     }
     
     
