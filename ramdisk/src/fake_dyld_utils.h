@@ -77,6 +77,7 @@
 #define MOUNT_WITH_SNAPSHOT                 (0)
 #define MOUNT_WITHOUT_SNAPSHOT              (1)
 
+// pongoOS
 #define checkrain_option_none               0x00000000
 #define checkrain_option_all                0x7fffffff
 #define checkrain_option_failure            0x80000000
@@ -101,24 +102,24 @@ typedef uint64_t mach_msg_timeout_t;
 
 void sleep(int secs);
 int sys_dup2(int from, int to);
-int stat(void *path, void *ub);
-int mount(char *type, char *path, int flags, void *data);
+int stat(const char *path, void *ub);
+int mount(const char *type, const char *path, int flags, void *data);
 void *mmap(void *addr, size_t length, int prot, int flags, int fd, uint64_t offset);
-uint64_t write(int fd, void* cbuf, size_t nbyte);
+uint64_t write(int fd, const void *cbuf, size_t nbyte);
 int close(int fd);
-int open(void *path, int flags, int mode);
-int execve(char *fname, char *const argv[], char *const envp[]);
-int unlink(void *path);
+int open(const char *path, int flags, int mode);
+int execve(const char *fname, char *const argv[], char *const envp[]);
+int unlink(const char *path);
 uint64_t read(int fd, void *cbuf, size_t nbyte);
 uint64_t lseek(int fd, int32_t offset, int whence);
-int mkdir(char* path, int mode);
+int mkdir(const char *path, int mode);
 void _putchar(char character);
 void spin(void);
-void memcpy(void *dst, void *src, size_t n);
+void memcpy(void *dst, const void *src, size_t n);
 void memset(void *dst, int c, size_t n);
 
-int mount_bindfs(char* mountpoint, char* dir);
-int mount_devfs(char* mountpoint);
-int deploy_file_from_memory(char* path, void* buf, size_t size);
+int mount_bindfs(const char* mountpoint, void* dir);
+int mount_devfs(const char* mountpoint);
+int deploy_file_from_memory(char* path, const void *buf, size_t size);
 
 #endif
