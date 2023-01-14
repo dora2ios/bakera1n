@@ -203,6 +203,13 @@ if [ $1 == "-p" ]; then
  echo '[*] copying fs...'
  echo '[!] !!! Do not touch the device !!!!'
  
+ /binpack/bin/mkdir /tmp/mnt1/fs
+ /binpack/bin/mkdir /tmp/mnt1/fs/gen
+ /binpack/bin/mkdir /tmp/mnt1/fs/fake
+ /binpack/bin/mkdir /tmp/mnt1/fs/orig
+ /binpack/bin/mkdir /tmp/mnt1/binpack
+ /binpack/bin/mkdir /tmp/mnt1/fake
+ 
  echo '[*] copying /.ba'
  /binpack/bin/cp -aRp /tmp/mnt0/.ba /tmp/mnt1/
  
@@ -250,25 +257,19 @@ if [ $1 == "-p" ]; then
  echo '[*] copying /var'
  /binpack/bin/cp -aRp /tmp/mnt0/var /tmp/mnt1/
  
- echo '[*] SKIP: /System/Library/Caches'
- /binpack/bin/mkdir /tmp/mnt1/fs
- /binpack/bin/mkdir /tmp/mnt1/fs/System
- /binpack/bin/mkdir /tmp/mnt1/fs/System/Library
- /binpack/bin/cp -aRp /tmp/mnt0/System/Library/Caches /tmp/mnt1/fs/System/Library/
- /binpack/bin/mkdir /tmp/mnt1/fs/System/Library/Caches/com.apple.dyld
+ if [ $ iOS == 16 ]; then
+  echo '[*] copying /System/Library/Caches'
+  /binpack/bin/mkdir /tmp/mnt1/fs/System
+  /binpack/bin/mkdir /tmp/mnt1/fs/System/Library
+  /binpack/bin/cp -aRp /tmp/mnt0/System/Library/Caches /tmp/mnt1/fs/System/Library/
+  /binpack/bin/mkdir /tmp/mnt1/fs/System/Library/Caches/com.apple.dyld
+ fi
  
  echo '[*] SKIP: /System'
  #/binpack/bin/cp -aRp /tmp/mnt0/System /tmp/mnt1/
  mkdir /tmp/mnt1/System
 
  echo "" > /tmp/mnt1/.bind_system
-
- #/binpack/bin/mkdir /tmp/mnt1/fs
- /binpack/bin/mkdir /tmp/mnt1/fs/gen
- /binpack/bin/mkdir /tmp/mnt1/fs/fake
- /binpack/bin/mkdir /tmp/mnt1/fs/orig
- /binpack/bin/mkdir /tmp/mnt1/binpack
- /binpack/bin/mkdir /tmp/mnt1/fake
 
  #rootless lib
  /binpack/bin/cp -aRp /.haxz.dylib /tmp/mnt1/haxz.dylib
