@@ -30,10 +30,10 @@ fi
 if [ $1 == "-c" ]; then
  echo "[*] Create Mode (full copy)"
  ######## start ########
- if stat /dev/disk1s1 >/dev/null 2>&1; then
+ if /binpack/usr/bin/stat /dev/disk1s1 >/dev/null 2>&1; then
   iOS=16
   disk="/dev/disk1"
- elif stat /dev/disk0s1s1 >/dev/null 2>&1; then
+ elif /binpack/usr/bin/stat /dev/disk0s1s1 >/dev/null 2>&1; then
   iOS=15
   disk="/dev/disk0s1"
  else
@@ -41,7 +41,7 @@ if [ $1 == "-c" ]; then
   exit
  fi
  
- if stat /var/jb >/dev/null 2>&1; then
+ if /binpack/usr/bin/stat /var/jb >/dev/null 2>&1; then
   echo '[-] already installed rootless bootstrap'
   exit
  fi
@@ -86,7 +86,7 @@ if [ $1 == "-c" ]; then
  /binpack/usr/bin/snaputil -s $(snaputil -o) / /tmp/mnt0
  /sbin/mount_apfs $newroot /tmp/mnt1
 
- if !stat /tmp/mnt0/bin >/dev/null 2>&1; then
+ if !/binpack/usr/bin/stat /tmp/mnt0/bin >/dev/null 2>&1; then
   echo '[-] snapshot is not mounted correctly.'
   echo '[-] WTF!?'
   exit
@@ -111,16 +111,16 @@ if [ $1 == "-c" ]; then
  /binpack/bin/mkdir /tmp/mnt1/fake
 
  #rootless lib
- /binpack/bin/cp -aRp /.haxz.dylib /tmp/mnt1/haxz.dylib
+ /binpack/bin/cp -aRp /binpack/usr/share/bakera1n/haxz.dylib /tmp/mnt1/haxz.dylib
 
  #generic payload
- /binpack/bin/cp -aRp /haxx /tmp/mnt1/haxx
+ /binpack/bin/cp -aRp /binpack/usr/share/bakera1n/haxx /tmp/mnt1/haxx
 
  #fake dyld
- /binpack/bin/cp -aRp /.rootfull.dyld /tmp/mnt1/fs/gen/dyld
+ /binpack/bin/cp -aRp /binpack/usr/share/bakera1n/fakedyld /tmp/mnt1/fs/gen/dyld
 
  #fake launchd (for give some ent)
- /binpack/bin/cp -aRp /.fakelaunchd /tmp/mnt1/fake/loaderd
+ /binpack/bin/cp -aRp /binpack/usr/share/bakera1n/loaderd /tmp/mnt1/fake/loaderd
 
  sleep 1
  
@@ -141,10 +141,10 @@ fi
 if [ $1 == "-p" ]; then
  echo "[*] Create Mode (partial  copy)"
  ######## start ########
- if stat /dev/disk1s1 >/dev/null 2>&1; then
+ if /binpack/usr/bin/stat /dev/disk1s1 >/dev/null 2>&1; then
   iOS=16
   disk="/dev/disk1"
- elif stat /dev/disk0s1s1 >/dev/null 2>&1; then
+ elif /binpack/usr/bin/stat /dev/disk0s1s1 >/dev/null 2>&1; then
   iOS=15
   disk="/dev/disk0s1"
  else
@@ -152,7 +152,7 @@ if [ $1 == "-p" ]; then
   exit
  fi
  
- if stat /var/jb >/dev/null 2>&1; then
+ if /binpack/usr/bin/stat /var/jb >/dev/null 2>&1; then
   echo '[-] already installed rootless bootstrap'
   exit
  fi
@@ -197,7 +197,7 @@ if [ $1 == "-p" ]; then
  /binpack/usr/bin/snaputil -s $(snaputil -o) / /tmp/mnt0
  /sbin/mount_apfs $newroot /tmp/mnt1
 
- if !stat /tmp/mnt0/bin >/dev/null 2>&1; then
+ if !/binpack/usr/bin/stat /tmp/mnt0/bin >/dev/null 2>&1; then
   echo '[-] snapshot is not mounted correctly.'
   echo '[-] WTF!?'
   exit
@@ -282,16 +282,16 @@ if [ $1 == "-p" ]; then
  echo "" > /tmp/mnt1/.bind_system
 
  #rootless lib
- /binpack/bin/cp -aRp /.haxz.dylib /tmp/mnt1/haxz.dylib
+ /binpack/bin/cp -aRp /binpack/usr/share/bakera1n/haxz.dylib /tmp/mnt1/haxz.dylib
 
  #generic payload
- /binpack/bin/cp -aRp /haxx /tmp/mnt1/haxx
+ /binpack/bin/cp -aRp /binpack/usr/share/bakera1n/haxx /tmp/mnt1/haxx
 
  #fake dyld
- /binpack/bin/cp -aRp /.rootfull.dyld /tmp/mnt1/fs/gen/dyld
+ /binpack/bin/cp -aRp /binpack/usr/share/bakera1n/fakedyld /tmp/mnt1/fs/gen/dyld
 
  #fake launchd (for give some ent)
- /binpack/bin/cp -aRp /.fakelaunchd /tmp/mnt1/fake/loaderd
+ /binpack/bin/cp -aRp /binpack/usr/share/bakera1n/loaderd /tmp/mnt1/fake/loaderd
 
  sleep 1
  
@@ -312,10 +312,10 @@ fi
 if [ $1 == "-s" ]; then
  echo "[*] Show Mode"
  ######## start ########
- if stat /dev/disk1s1 >/dev/null 2>&1; then
+ if /binpack/usr/bin/stat /dev/disk1s1 >/dev/null 2>&1; then
   iOS=16
   disk="/dev/disk1"
- elif stat /dev/disk0s1s1 >/dev/null 2>&1; then
+ elif /binpack/usr/bin/stat /dev/disk0s1s1 >/dev/null 2>&1; then
   iOS=15
   disk="/dev/disk0s1"
  else
@@ -342,10 +342,10 @@ if [ $1 == "-s" ]; then
 if [ $1 == "-u" ]; then
  echo "[*] Update Mode"
  ######## start ########
- if stat /dev/disk1s1 >/dev/null 2>&1; then
+ if /binpack/usr/bin/stat /dev/disk1s1 >/dev/null 2>&1; then
   iOS=16
   disk="/dev/disk1"
- elif stat /dev/disk0s1s1 >/dev/null 2>&1; then
+ elif /binpack/usr/bin/stat /dev/disk0s1s1 >/dev/null 2>&1; then
   iOS=15
   disk="/dev/disk0s1"
  else
@@ -384,26 +384,32 @@ if [ $1 == "-u" ]; then
   echo '[-] WTF!?'
  fi
  
+ if !/binpack/usr/bin/stat /tmp/mnt1/bin >/dev/null 2>&1; then
+  echo '[-] new fs is not mounted correctly.'
+  echo '[-] WTF!?'
+  exit
+ fi
+ 
  echo '[!] updating utils...'
  #rootless lib
  /binpack/bin/rm -rf /tmp/mnt1/haxz.dylib
  /binpack/bin/sync
- /binpack/bin/cp -aRp /.haxz.dylib /tmp/mnt1/haxz.dylib
+ /binpack/bin/cp -aRp /binpack/usr/share/bakera1n/haxz.dylib /tmp/mnt1/haxz.dylib
 
  #generic payload
  /binpack/bin/rm -rf /tmp/mnt1/haxx
  /binpack/bin/sync
- /binpack/bin/cp -aRp /haxx /tmp/mnt1/haxx
+ /binpack/bin/cp -aRp /binpack/usr/share/bakera1n/haxx /tmp/mnt1/haxx
 
  #fake dyld
  /binpack/bin/rm -rf /tmp/mnt1/fs/gen/dyld
  /binpack/bin/sync
- /binpack/bin/cp -aRp /.rootfull.dyld /tmp/mnt1/fs/gen/dyld
+ /binpack/bin/cp -aRp /binpack/usr/share/bakera1n/fakedyld /tmp/mnt1/fs/gen/dyld
 
  #fake launchd (for give some ent)
  /binpack/bin/rm -rf /tmp/mnt1/fake/loaderd
  /binpack/bin/sync
- /binpack/bin/cp -aRp /.fakelaunchd /tmp/mnt1/fake/loaderd
+ /binpack/bin/cp -aRp /binpack/usr/share/bakera1n/loaderd /tmp/mnt1/fake/loaderd
 
  sleep 1
  

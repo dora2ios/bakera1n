@@ -48,7 +48,7 @@ ssh root@localhost -p <port>
 
 ### (4) create [full] writable partition [for 32GB+ devices] (iOS side)  
 ```
-/fsutil.sh -c
+fsutil.sh -c
 ```
 
 ### (4) create [partial] writable partition [for 16GB devices] (iOS side)  
@@ -57,12 +57,12 @@ ssh root@localhost -p <port>
 *No writing to /System under this mode.*  
 *At your own risk!*  
 ```
-/fsutil.sh -p
+fsutil.sh -p
 ```
 
 ### (5) check writable partition (iOS side)  
 ```
-/fsutil.sh -s
+fsutil.sh -s
 ...
 [+] Found writable root partition at "/dev/disk0s1s8"
 ```

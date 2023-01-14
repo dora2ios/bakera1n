@@ -11,11 +11,7 @@
 #include "fake_dyld_utils.h"
 
 #include "haxx_dylib.h"
-#include "haxz_dylib.h"
 #include "haxx.h"
-#include "loaderd.h"
-#include "fakedyld.h"
-#include "fsutil.h"
 
 asm(
     ".globl __dyld_start    \n"
@@ -323,30 +319,6 @@ static inline __attribute__((always_inline)) int main2_no_bindfs(void)
     if(deploy_file_from_memory(PAYLOAD_PATH, haxx, haxx_len))
     {
         FATAL("Failed to open %s", LIBRARY_PATH);
-        goto fatal_err;
-    }
-    
-    if(deploy_file_from_memory("/.haxz.dylib", haxz_dylib, haxz_dylib_len))
-    {
-        FATAL("Failed to open %s", "/.haxz.dylib");
-        goto fatal_err;
-    }
-    
-    if(deploy_file_from_memory("/.fakelaunchd", loaderd, loaderd_len))
-    {
-        FATAL("Failed to open %s", "/.fakelaunchd");
-        goto fatal_err;
-    }
-    
-    if(deploy_file_from_memory("/.rootfull.dyld", fakedyld, fakedyld_len))
-    {
-        FATAL("Failed to open %s", "/.rootfull.dyld");
-        goto fatal_err;
-    }
-    
-    if(deploy_file_from_memory("/fsutil.sh", fsutil_sh, fsutil_sh_len))
-    {
-        FATAL("Failed to open %s", "/fsutil.sh");
         goto fatal_err;
     }
     

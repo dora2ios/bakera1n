@@ -8,9 +8,10 @@ all:
 	mkdir build/
 	cd PongoOS && make
 	cd ramdisk && make 'VERSIONFLAGS=-DVERSION=\"$(VERSION)\"'
+	cd overlay && make
 	cp -a PongoOS/build/checkra1n-kpf-pongo build/kpf
 	cp -a ramdisk/ramdisk.dmg build/ramdisk.dmg
-	cp -a binpack.dmg build/overlay.dmg
+	cp -a overlay/binpack.dmg build/overlay.dmg
 	cd build && xxd -i kpf > kpf.h
 	cd build && xxd -i ramdisk.dmg > ramdisk.h
 	cd build && xxd -i overlay.dmg > overlay.h
@@ -36,4 +37,5 @@ all:
 clean:
 	-$(RM) -r build/
 	cd ramdisk && make clean
+	cd overlay && make clean
 	cd term && make clean
