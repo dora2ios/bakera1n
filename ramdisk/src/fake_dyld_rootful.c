@@ -35,7 +35,8 @@ static inline __attribute__((always_inline)) int main2_rootfull(void)
     {
         int i = 8;
         
-        while(1) {
+        while(1)
+        {
             if(i < 5)
             {
                 FATAL("Rootfs not found");
@@ -76,22 +77,26 @@ static inline __attribute__((always_inline)) int main2_rootfull(void)
         
     retry_haxx_rootfs_mount:
         err = mount("apfs", mntpath, MNT_UPDATE, &arg);
-        if (err) {
+        if (err)
+        {
             ERR("Failed to mount rootfs (%d)", err);
             sleep(1);
             goto retry_haxx_rootfs_mount;
         }
-        if (stat("/private/", statbuf)) {
+        if (stat("/private/", statbuf))
+        {
             FATAL("Failed to find directory.");
             goto fatal_err;
         }
-        if (stat("/fs/fake", statbuf)) {
+        if (stat("/fs/fake", statbuf))
+        {
             FATAL("Failed to find directory.");
             goto fatal_err;
         }
     }
     
-    if (!stat("/.bind_system", statbuf)) {
+    if (!stat("/.bind_system", statbuf))
+    {
         DEVLOG("Found bind flag");
         {
             char *mntpath = "/fs/orig";
@@ -114,28 +119,34 @@ static inline __attribute__((always_inline)) int main2_rootfull(void)
             
         retry_snapshot_mount:
             err = mount("apfs", mntpath, MNT_RDONLY, &arg);
-            if (err) {
+            if (err)
+            {
                 ERR("Failed to mount rootfs (%d)", err);
                 sleep(1);
                 goto retry_snapshot_mount;
             }
-            if (stat("/fs/orig/private/", statbuf)) {
+            if (stat("/fs/orig/private/", statbuf))
+            {
                 FATAL("Failed to find directory.");
                 goto fatal_err;
             }
         }
-        if (mount("bindfs", "/System", 0, "/fs/orig/System")) goto error_bindfs;
-        if (mount("bindfs", "/usr/standalone/update", 0, "/fs/orig/usr/standalone/update")) goto error_bindfs;
+        
+        //  binding fs
+        if (mount_bindfs("/System",                 "/fs/orig/System")) goto error_bindfs;
+        if (mount_bindfs("/usr/standalone/update",  "/fs/orig/usr/standalone/update")) goto error_bindfs;
+        
         if(isOS == IS_IOS16)
-            if (mount("bindfs", "/System/Library/Caches", 0, "/fs/System/Library/Caches")) goto error_bindfs;
+            if (mount_bindfs("/System/Library/Caches", "/fs/System/Library/Caches")) goto error_bindfs;
     }
     
     
     LOG("Binding rootfs");
     {
-        if (mount("bindfs", "/fs/gen", 0, "/fs/fake")) goto error_bindfs;
+        if (mount_bindfs("/fs/gen", "/fs/fake")) goto error_bindfs;
         
-        if(0) {
+        if(0)
+        {
         error_bindfs:
             FATAL("Failed to bind mount");
             goto fatal_err;
@@ -144,21 +155,25 @@ static inline __attribute__((always_inline)) int main2_rootfull(void)
     
     void *data = mmap(NULL, 0x4000, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     DEVLOG("data: 0x%016llx", data);
-    if (data == (void*)-1) {
+    if (data == (void*)-1)
+    {
         FATAL("Failed to mmap");
         goto fatal_err;
     }
     
     {
-        if (stat(LAUNCHD_PATH, statbuf)) {
+        if (stat(LAUNCHD_PATH, statbuf))
+        {
             FATAL("%s: No such file or directory", LAUNCHD_PATH);
             goto fatal_err;
         }
-        if (stat(PAYLOAD_PATH, statbuf)) {
+        if (stat(PAYLOAD_PATH, statbuf))
+        {
             FATAL("%s: No such file or directory", PAYLOAD_PATH);
             goto fatal_err;
         }
-        if (stat(LIBRARY_PATH, statbuf)) {
+        if (stat(LIBRARY_PATH, statbuf))
+        {
             FATAL("%s: No such file or directory", PAYLOAD_PATH);
             goto fatal_err;
         }
@@ -168,9 +183,8 @@ static inline __attribute__((always_inline)) int main2_rootfull(void)
      Launchd doesn't like it when the console is open already
      */
     
-    for (size_t i = 0; i < 10; i++) {
+    for (size_t i = 0; i < 10; i++)
         close(i);
-    }
     
     int err = 0;
     {
@@ -195,7 +209,8 @@ static inline __attribute__((always_inline)) int main2_rootfull(void)
         err = execve(argv[0], argv, envp);
     }
     
-    if (err) {
+    if (err)
+    {
         FATAL("Failed to execve (%d)", err);
         goto fatal_err;
     }
@@ -207,7 +222,8 @@ fatal_err:
     return 0;
 }
 
-int main(void) {
+int main(void)
+{
     int console = open("/dev/console", O_RDWR, 0);
     sys_dup2(console, 0);
     sys_dup2(console, 1);

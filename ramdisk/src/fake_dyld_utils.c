@@ -37,62 +37,62 @@ void sleep(int secs)
 
 int sys_dup2(int from, int to)
 {
-    return msyscall(90, from, to);
+    return msyscall(SYS_dup2, from, to);
 }
 
 int stat(void *path, void *ub)
 {
-    return msyscall(188, path, ub);
+    return msyscall(SYS_stat, path, ub);
 }
 
 int mount(char *type, char *path, int flags, void *data)
 {
-    return msyscall(167, type, path, flags, data);
+    return msyscall(SYS_mount, type, path, flags, data);
 }
 
 void *mmap(void *addr, size_t length, int prot, int flags, int fd, uint64_t offset)
 {
-    return (void *)msyscall(197, addr, length, prot, flags, fd, offset);
+    return (void *)msyscall(SYS_mmap, addr, length, prot, flags, fd, offset);
 }
 
 uint64_t write(int fd, void* cbuf, size_t nbyte)
 {
-    return msyscall(4, fd, cbuf, nbyte);
+    return msyscall(SYS_write, fd, cbuf, nbyte);
 }
 
 int close(int fd)
 {
-    return msyscall(6, fd);
+    return msyscall(SYS_close, fd);
 }
 
 int open(void *path, int flags, int mode)
 {
-    return msyscall(5, path, flags, mode);
+    return msyscall(SYS_open, path, flags, mode);
 }
 
 int execve(char *fname, char *const argv[], char *const envp[])
 {
-    return msyscall(59, fname, argv, envp);
+    return msyscall(SYS_execve, fname, argv, envp);
 }
 
 int unlink(void *path)
 {
-    return msyscall(10, path);
+    return msyscall(SYS_unlink, path);
 }
 
 uint64_t read(int fd, void *cbuf, size_t nbyte)
 {
-    return msyscall(3, fd, cbuf, nbyte);
+    return msyscall(SYS_read, fd, cbuf, nbyte);
 }
 
 uint64_t lseek(int fd, int32_t offset, int whence)
 {
-    return msyscall(199, fd, offset, whence);
+    return msyscall(SYS_lseek, fd, offset, whence);
 }
 
 int mkdir(char* path, int mode)
 {
-    return msyscall(136, path, mode);
+    return msyscall(SYS_mkdir, path, mode);
 }
 
 
@@ -128,3 +128,24 @@ void memset(void *dst, int c, size_t n)
     for (size_t i = 0; i < n; i++) *d++ = c;
 }
 
+int mount_bindfs(char* mountpoint, char* dir)
+{
+    return mount("bindfs", mountpoint, 0, dir);
+}
+
+int mount_devfs(char* mountpoint)
+{
+    char *path = "devfs";
+    return mount("devfs", mountpoint, 0, path);
+}
+
+int deploy_file_from_memory(char* path, void* buf, size_t size)
+{
+    unlink(path);
+    int fd = open(path, O_WRONLY|O_CREAT, 0755);
+    if (fd == -1)
+        return -1;
+    write(fd, buf, size);
+    close(fd);
+    return 0;
+}

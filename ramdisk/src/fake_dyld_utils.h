@@ -3,6 +3,24 @@
 
 #include <stdint.h>
 
+// syscalls
+#define    SYS_exit           1
+#define    SYS_fork           2
+#define    SYS_read           3
+#define    SYS_write          4
+#define    SYS_open           5
+#define    SYS_close          6
+#define    SYS_unlink         10
+#define    SYS_getpid         20
+#define    SYS_execve         59
+#define    SYS_dup2           90
+#define    SYS_mkdir          136
+#define    SYS_mount          167
+#define    SYS_stat           188
+#define    SYS_mmap           197
+#define    SYS_lseek          199
+
+
 #define ROOTFS_IOS15        "/dev/disk0s1s1"
 #define ROOTFS_IOS16        "/dev/disk1s1"
 #define ROOTFS_RAMDISK      "/dev/md0"
@@ -21,9 +39,9 @@
 #define IS_IOS15        (1800)
 
 #define STDOUT_FILENO   (1)
-#define getpid()        msyscall(20)
-#define exit(err)       msyscall(1, err)
-#define fork()          msyscall(2)
+#define getpid()        msyscall(SYS_getpid)
+#define exit(err)       msyscall(SYS_exit, err)
+#define fork()          msyscall(SYS_fork)
 #define puts(str)       write(STDOUT_FILENO, str, sizeof(str) - 1)
 
 #define O_RDONLY        0
@@ -99,6 +117,8 @@ void spin(void);
 void memcpy(void *dst, void *src, size_t n);
 void memset(void *dst, int c, size_t n);
 
-
+int mount_bindfs(char* mountpoint, char* dir);
+int mount_devfs(char* mountpoint);
+int deploy_file_from_memory(char* path, void* buf, size_t size);
 
 #endif

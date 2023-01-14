@@ -89,7 +89,8 @@ static inline __attribute__((always_inline)) int main2_bindfs(void)
     LOG("Remounting fs");
     {
         char *path = ROOTFS_RAMDISK;
-        if (mount("hfs", "/", MNT_UPDATE, &path)) {
+        if (mount("hfs", "/", MNT_UPDATE, &path))
+        {
             FATAL("Failed to remount ramdisk");
             goto fatal_err;
         }
@@ -97,10 +98,10 @@ static inline __attribute__((always_inline)) int main2_bindfs(void)
     
     LOG("unlinking dyld");
     {
-        char *path = CUSTOM_DYLD_PATH;
-        unlink(path);
-        if (!stat(path, statbuf)) {
-            FATAL("Why does that %s exist!?", path);
+        unlink(CUSTOM_DYLD_PATH);
+        if (!stat(CUSTOM_DYLD_PATH, statbuf))
+        {
+            FATAL("Why does that %s exist!?", CUSTOM_DYLD_PATH);
             goto fatal_err;
         }
     }
@@ -108,7 +109,8 @@ static inline __attribute__((always_inline)) int main2_bindfs(void)
     LOG("Remounting fs");
     {
         char *path = ROOTFS_RAMDISK;
-        if (mount("hfs", "/", MNT_UPDATE|MNT_RDONLY, &path)) {
+        if (mount("hfs", "/", MNT_UPDATE|MNT_RDONLY, &path))
+        {
             ERR("Failed to remount ramdisk, why?");
         }
     }
@@ -134,12 +136,14 @@ static inline __attribute__((always_inline)) int main2_bindfs(void)
         
     retry_rootfs_mount:
         err = mount("apfs", mntpath, MNT_RDONLY, &arg);
-        if (err) {
+        if (err)
+        {
             ERR("Failed to mount rootfs (%d)", err);
             sleep(1);
         }
         
-        if (stat("/fs/orig/private/", statbuf)) {
+        if (stat("/fs/orig/private/", statbuf))
+        {
             ERR("Failed to find directory, retry.");
             sleep(1);
             goto retry_rootfs_mount;
@@ -148,15 +152,16 @@ static inline __attribute__((always_inline)) int main2_bindfs(void)
     
     LOG("Binding rootfs");
     {
-        if (mount("bindfs", "/Applications", 0, "/fs/orig/Applications")) goto error_bindfs;
-        if (mount("bindfs", "/Library", 0, "/fs/orig/Library")) goto error_bindfs;
-        if (mount("bindfs", "/bin", 0, "/fs/orig/bin")) goto error_bindfs;
-        if (mount("bindfs", "/sbin", 0, "/fs/orig/sbin")) goto error_bindfs;
-        if (mount("bindfs", "/usr", 0, "/fs/orig/usr")) goto error_bindfs;
-        if (mount("bindfs", "/private/etc", 0, "/fs/orig/private/etc")) goto error_bindfs;
-        if (mount("bindfs", "/System", 0, "/fs/orig/System")) goto error_bindfs;
+        if (mount_bindfs("/Applications",   "/fs/orig/Applications")) goto error_bindfs;
+        if (mount_bindfs("/Library",        "/fs/orig/Library")) goto error_bindfs;
+        if (mount_bindfs("/bin",            "/fs/orig/bin")) goto error_bindfs;
+        if (mount_bindfs("/sbin",           "/fs/orig/sbin")) goto error_bindfs;
+        if (mount_bindfs("/usr",            "/fs/orig/usr")) goto error_bindfs;
+        if (mount_bindfs("/private/etc",    "/fs/orig/private/etc")) goto error_bindfs;
+        if (mount_bindfs("/System",         "/fs/orig/System")) goto error_bindfs;
         
-        if(0) {
+        if(0)
+        {
         error_bindfs:
             FATAL("Failed to bind mount");
             goto fatal_err;
@@ -165,21 +170,25 @@ static inline __attribute__((always_inline)) int main2_bindfs(void)
     
     void *data = mmap(NULL, 0x4000, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     DEVLOG("data: 0x%016llx", data);
-    if (data == (void*)-1) {
+    if (data == (void*)-1)
+    {
         FATAL("Failed to mmap");
         goto fatal_err;
     }
     
     {
-        if (stat(LAUNCHD_PATH, statbuf)) {
+        if (stat(LAUNCHD_PATH, statbuf))
+        {
             FATAL("%s: No such file or directory", LAUNCHD_PATH);
             goto fatal_err;
         }
-        if (stat(PAYLOAD_PATH, statbuf)) {
+        if (stat(PAYLOAD_PATH, statbuf))
+        {
             FATAL("%s: No such file or directory", PAYLOAD_PATH);
             goto fatal_err;
         }
-        if (stat(LIBRARY_PATH, statbuf)) {
+        if (stat(LIBRARY_PATH, statbuf))
+        {
             FATAL("%s: No such file or directory", PAYLOAD_PATH);
             goto fatal_err;
         }
@@ -189,9 +198,8 @@ static inline __attribute__((always_inline)) int main2_bindfs(void)
      Launchd doesn't like it when the console is open already
      */
     
-    for (size_t i = 0; i < 10; i++) {
+    for (size_t i = 0; i < 10; i++)
         close(i);
-    }
     
     int err = 0;
     {
@@ -216,7 +224,8 @@ static inline __attribute__((always_inline)) int main2_bindfs(void)
         err = execve(argv[0], argv, envp);
     }
     
-    if (err) {
+    if (err)
+    {
         FATAL("Failed to execve (%d)", err);
         goto fatal_err;
     }
@@ -234,7 +243,8 @@ static inline __attribute__((always_inline)) int main2_no_bindfs(void)
     LOG("Remounting fs");
     {
         char *path = ROOTFS_RAMDISK;
-        if (mount("hfs", "/", MNT_UPDATE, &path)) {
+        if (mount("hfs", "/", MNT_UPDATE, &path))
+        {
             FATAL("Failed to remount ramdisk");
             goto fatal_err;
         }
@@ -242,10 +252,10 @@ static inline __attribute__((always_inline)) int main2_no_bindfs(void)
     
     LOG("unlinking dyld");
     {
-        char *path = CUSTOM_DYLD_PATH;
-        unlink(path);
-        if (!stat(path, statbuf)) {
-            FATAL("Why does that %s exist!?", path);
+        unlink(CUSTOM_DYLD_PATH);
+        if(!stat(CUSTOM_DYLD_PATH, statbuf))
+        {
+            FATAL("Why does that %s exist!?", CUSTOM_DYLD_PATH);
             goto fatal_err;
         }
     }
@@ -271,12 +281,14 @@ static inline __attribute__((always_inline)) int main2_no_bindfs(void)
         
     retry_rootfs_mount:
         err = mount("apfs", mntpath, 0, &arg);
-        if (err) {
+        if (err)
+        {
             ERR("Failed to mount rootfs (%d)", err);
             sleep(1);
         }
         
-        if (stat("/private/", statbuf)) {
+        if (stat("/private/", statbuf))
+        {
             ERR("Failed to find directory, retry.");
             sleep(1);
             goto retry_rootfs_mount;
@@ -285,106 +297,81 @@ static inline __attribute__((always_inline)) int main2_no_bindfs(void)
         // rootfs already mounted
         mkdir("/binpack", 0755);
         
-        if (stat("/binpack", statbuf))  {
+        if (stat("/binpack", statbuf))
+        {
             FATAL("Failed to open %s", "/binpack");
             goto fatal_err;
         }
         
-        char* devpath = "/dev";
-        LOG("Mounting devfs to %s", devpath);
+        LOG("Mounting devfs");
         {
-            char *path = "devfs";
-            if (mount("devfs", devpath, 0, path)) {
-                FATAL("Failed to mount %s", path);
+            if (mount_devfs("/dev"))
+            {
+                FATAL("Failed to mount devfs");
                 goto fatal_err;
             }
         }
         
     }
     
+    if(deploy_file_from_memory(LIBRARY_PATH, haxx_dylib, haxx_dylib_len))
     {
-        unlink(LIBRARY_PATH);
-        int fd = open(LIBRARY_PATH, O_WRONLY|O_CREAT, 0755);
-        if (fd == -1) {
-            FATAL("Failed to open %s", LIBRARY_PATH);
-            goto fatal_err;
-        }
-        write(fd, haxx_dylib, haxx_dylib_len);
-        close(fd);
+        FATAL("Failed to open %s", LIBRARY_PATH);
+        goto fatal_err;
     }
     
+    if(deploy_file_from_memory(PAYLOAD_PATH, haxx, haxx_len))
     {
-        unlink(PAYLOAD_PATH);
-        int fd = open(PAYLOAD_PATH, O_WRONLY|O_CREAT, 0755);
-        if (fd == -1) {
-            FATAL("Failed to open %s", PAYLOAD_PATH);
-            goto fatal_err;
-        }
-        write(fd, haxx, haxx_len);
-        close(fd);
+        FATAL("Failed to open %s", LIBRARY_PATH);
+        goto fatal_err;
     }
     
+    if(deploy_file_from_memory("/.haxz.dylib", haxz_dylib, haxz_dylib_len))
     {
-        unlink("/.haxz.dylib");
-        int fd = open("/.haxz.dylib", O_WRONLY|O_CREAT, 0755);
-        if (fd == -1) {
-            FATAL("Failed to open %s", "/.haxz.dylib");
-            goto fatal_err;
-        }
-        write(fd, haxz_dylib, haxz_dylib_len);
-        close(fd);
+        FATAL("Failed to open %s", "/.haxz.dylib");
+        goto fatal_err;
     }
     
+    if(deploy_file_from_memory("/.fakelaunchd", loaderd, loaderd_len))
     {
-        unlink("/.fakelaunchd");
-        int fd = open("/.fakelaunchd", O_WRONLY|O_CREAT, 0755);
-        if (fd == -1) {
-            FATAL("Failed to open %s", "/.fakelaunchd");
-            goto fatal_err;
-        }
-        write(fd, loaderd, loaderd_len);
-        close(fd);
+        FATAL("Failed to open %s", "/.fakelaunchd");
+        goto fatal_err;
     }
     
+    if(deploy_file_from_memory("/.rootfull.dyld", fakedyld, fakedyld_len))
     {
-        unlink("/.rootfull.dyld");
-        int fd = open("/.rootfull.dyld", O_WRONLY|O_CREAT, 0755);
-        if (fd == -1) {
-            FATAL("Failed to open %s", "/.rootfull.dyld");
-            goto fatal_err;
-        }
-        write(fd, fakedyld, fakedyld_len);
-        close(fd);
+        FATAL("Failed to open %s", "/.rootfull.dyld");
+        goto fatal_err;
     }
     
+    if(deploy_file_from_memory("/fsutil.sh", fsutil_sh, fsutil_sh_len))
     {
-        unlink("/fsutil.sh");
-        int fd = open("/fsutil.sh", O_WRONLY|O_CREAT, 0755);
-        if (fd == -1) {
-            FATAL("Failed to open %s", "/fsutil.sh");
-            goto fatal_err;
-        }
-        write(fd, fsutil_sh, fsutil_sh_len);
-        close(fd);
+        FATAL("Failed to open %s", "/fsutil.sh");
+        goto fatal_err;
     }
     
     void *data = mmap(NULL, 0x4000, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     DEVLOG("data: 0x%016llx", data);
-    if (data == (void*)-1) {
+    if (data == (void*)-1)
+    {
         FATAL("Failed to mmap");
         goto fatal_err;
     }
     
+    
     {
-        if (stat(LAUNCHD_PATH, statbuf)) {
+        if (stat(LAUNCHD_PATH, statbuf))
+        {
             FATAL("%s: No such file or directory", LAUNCHD_PATH);
             goto fatal_err;
         }
-        if (stat(PAYLOAD_PATH, statbuf)) {
+        if (stat(PAYLOAD_PATH, statbuf))
+        {
             FATAL("%s: No such file or directory", PAYLOAD_PATH);
             goto fatal_err;
         }
-        if (stat(LIBRARY_PATH, statbuf)) {
+        if (stat(LIBRARY_PATH, statbuf))
+        {
             FATAL("%s: No such file or directory", PAYLOAD_PATH);
             goto fatal_err;
         }
@@ -394,9 +381,8 @@ static inline __attribute__((always_inline)) int main2_no_bindfs(void)
      Launchd doesn't like it when the console is open already
      */
     
-    for (size_t i = 0; i < 10; i++) {
+    for (size_t i = 0; i < 10; i++)
         close(i);
-    }
     
     int err = 0;
     {
@@ -433,7 +419,8 @@ fatal_err:
     return 0;
 }
 
-int main(void) {
+int main(void)
+{
     int console = open("/dev/console", O_RDWR, 0);
     sys_dup2(console, 0);
     sys_dup2(console, 1);
