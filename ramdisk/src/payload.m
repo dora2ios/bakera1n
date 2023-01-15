@@ -281,33 +281,6 @@ static inline __attribute__((always_inline)) int runCmd(const char *cmd, char * 
     return rv;
 }
 
-//static inline __attribute__((always_inline)) int earlyRunCmd(const char *cmd, char * const *args)
-//{
-//    pid_t pid;
-//    posix_spawn_file_actions_t *actions = NULL;
-//    posix_spawn_file_actions_t actionsStruct;
-//    int out_pipe[2];
-//    bool valid_pipe = false;
-//    posix_spawnattr_t *attr = NULL;
-//    posix_spawnattr_t attrStruct;
-//    
-//    int rv = posix_spawn(&pid, cmd, actions, attr, (char *const *)args, environ);
-//    
-//    if (rv == 0) {
-////        if (waitpid(pid, &rv, 0) == -1) {
-////            ERR("Waitpid failed");
-////        } else {
-////            LOG("completed with exit status %d[%s]", WEXITSTATUS(rv), cmd);
-//        LOG("haxx");
-////        }
-//    } else {
-//        ERR("posix_spawn failed (%d[%s]): %s", rv, cmd, strerror(rv));
-//    }
-//    
-//    return rv;
-//}
-
-
 static inline __attribute__((always_inline)) int makeRSA(void)
 {
     pid_t pid;
@@ -365,7 +338,7 @@ static inline __attribute__((always_inline)) void UICacheForRootlessApplications
             char *pp = NULL;
             asprintf(&pp,"/var/jb/Applications/%s", dir->d_name);
 
-            char *args[] = { "/var/jb/usr/bin/uicache", "-f", "-p", pp, NULL };
+            char *args[] = { "/var/jb/usr/bin/uicache", "-p", pp, NULL };
             runCmd(args[0], args);
 
             free(pp);
@@ -485,22 +458,31 @@ static inline __attribute__((always_inline)) int ReloadSystem(void)
         startDropbear();
     }
     
-//    if(!stat("/var/jb/.installed_kok3shi", &st) && !checkrain_option_enabled(checkrain_option_safemode, pflags))
-//    {
-//        DEVLOG("loading rc.d");
-//        startRCD();
-//        DEVLOG("loading deamons");
-//        startJBDeamons();
-//        sync();
-//        sync();
-//        sync();
-//        DEVLOG("uicache...");
-//        UICacheForRootlessApplications();
-//    }
-    
-//    DEVLOG("uicache...");
-//    if(!notBinpack)
-//        UICacheForLoader();
+    if(!userspace_reboot && !stat("/var/jb/usr/libexec/ellekit/loader", &st))
+    {
+        // ellekit
+        startRootlessEllekit();
+        
+        DEVLOG("rebooting userspace...");
+        char* lauchchctl_path = NULL;
+        if(!stat("/binpack/bin/launchctl", &st))
+            lauchchctl_path = "/binpack/bin/launchctl";
+        else if(!stat("/var/jb/bin/launchctl", &st))
+            lauchchctl_path = "/var/jb/bin/launchctl";
+        
+        if(lauchchctl_path)
+        {
+            char *args[] = { lauchchctl_path, "reboot", "userspace", NULL };
+            return runCmd(args[0], args);
+        }
+        
+    }
+    else
+    {
+        // launchdeamons
+        startJBDeamons();
+        UICacheForRootlessApplications();
+    }
     
     return 0;
 }
@@ -550,6 +532,7 @@ static inline __attribute__((always_inline)) int ReloadSystemRootFull(void)
 {
     struct stat st;
     int notBinpack = stat("/binpack/.installed_overlay", &st);
+    
     // rootfull does not have kinfo
     if(notBinpack)
     {
@@ -568,6 +551,7 @@ static inline __attribute__((always_inline)) int ReloadSystemRootFull(void)
     // ios 16.0 - 16.1.2
     if( // !stat("/etc/rc.d/substitute-launcher", &st) &&
        !userspace_reboot &&
+       stat("/.rootless_test", &st) &&
        (kCFCoreFoundationVersionNumber <= kCFCoreFoundationVersionNumber_iOS_16_1_2) &&
        (kCFCoreFoundationVersionNumber > kCFCoreFoundationVersionNumber_iOS_16))
     {
@@ -605,7 +589,7 @@ static inline __attribute__((always_inline)) int ReloadSystemRootFull(void)
         DEVLOG("substitute is not supported yet.");
     }
     
-    if(hasDYLDcache && !userspace_reboot && !stat("/etc/rc.d/substitute-launcher", &st))
+    if(hasDYLDcache && !userspace_reboot && !stat("/etc/rc.d/substitute-launcher", &st) && stat("/.rootless_test", &st))
     {
         DEVLOG("loading substitute");
         startSubstitute();
@@ -624,6 +608,24 @@ static inline __attribute__((always_inline)) int ReloadSystemRootFull(void)
             return runCmd(args[0], args);
         }
         
+    }
+    else if(!stat("/.rootless_test", &st) && !userspace_reboot && !stat("/var/jb/usr/libexec/ellekit/loader", &st))
+    {
+        // ellekit
+        startRootlessEllekit();
+        
+        DEVLOG("rebooting userspace...");
+        char* lauchchctl_path = NULL;
+        if(!stat("/binpack/bin/launchctl", &st))
+            lauchchctl_path = "/binpack/bin/launchctl";
+        else if(!stat("/var/jb/bin/launchctl", &st))
+            lauchchctl_path = "/var/jb/bin/launchctl";
+        
+        if(lauchchctl_path)
+        {
+            char *args[] = { lauchchctl_path, "reboot", "userspace", NULL };
+            return runCmd(args[0], args);
+        }
     }
     
     if(!notBinpack)
@@ -654,12 +656,24 @@ static inline __attribute__((always_inline)) int ReloadSystemRootFull(void)
         }
     }
     
-    DEVLOG("loading deamons");
-    startJBDeamonsRootFull();
-    sync();
-    UICacheForRootFul();
-    sync();
-    sync();
+    if(stat("/.rootless_test", &st))
+    {
+        DEVLOG("loading deamons");
+        startJBDeamonsRootFull();
+        sync();
+        UICacheForRootFul();
+        sync();
+        sync();
+    }
+    else
+    {
+        DEVLOG("loading deamons");
+        startJBDeamons();
+        sync();
+        UICacheForRootlessApplications();
+        sync();
+        sync();
+    }
     
     return 0;
 }

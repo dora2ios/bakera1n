@@ -80,8 +80,8 @@ if [ $1 == "-c" ]; then
  
  newroot=$disk's'${i}
 
- mkdir /tmp/mnt0
- mkdir /tmp/mnt1
+ /binpack/bin/mkdir /tmp/mnt0
+ /binpack/bin/mkdir /tmp/mnt1
 
  /binpack/usr/bin/snaputil -s $(snaputil -o) / /tmp/mnt0
  /sbin/mount_apfs $newroot /tmp/mnt1
@@ -191,8 +191,8 @@ if [ $1 == "-p" ]; then
  
  newroot=$disk's'${i}
 
- mkdir /tmp/mnt0
- mkdir /tmp/mnt1
+ /binpack/bin/mkdir /tmp/mnt0
+ /binpack/bin/mkdir /tmp/mnt1
 
  /binpack/usr/bin/snaputil -s $(snaputil -o) / /tmp/mnt0
  /sbin/mount_apfs $newroot /tmp/mnt1
@@ -256,7 +256,7 @@ if [ $1 == "-p" ]; then
  echo '[*] copying /usr'
  /binpack/bin/cp -aRp /tmp/mnt0/usr /tmp/mnt1/
  /binpack/bin/rm -rf /tmp/mnt1/usr/standalone/update
- mkdir /tmp/mnt1/usr/standalone/update
+ /binpack/bin/mkdir /tmp/mnt1/usr/standalone/update
  
  echo '[*] copying /etc'
  /binpack/bin/cp -aRp /tmp/mnt0/etc /tmp/mnt1/
@@ -268,16 +268,26 @@ if [ $1 == "-p" ]; then
  /binpack/bin/cp -aRp /tmp/mnt0/var /tmp/mnt1/
  
  if [ $iOS == 16 ]; then
-  echo '[*] copying /System/Library/Caches'
-  /binpack/bin/mkdir /tmp/mnt1/fs/System
-  /binpack/bin/mkdir /tmp/mnt1/fs/System/Library
-  /binpack/bin/cp -aRp /tmp/mnt0/System/Library/Caches /tmp/mnt1/fs/System/Library/
-  /binpack/bin/mkdir /tmp/mnt1/fs/System/Library/Caches/com.apple.dyld
+  xnu_v0=$(/binpack/usr/bin/uname -v  | /binpack/usr/bin/grep '8792.0.')
+  xnu_v1=$(/binpack/usr/bin/uname -v  | /binpack/usr/bin/grep '8792.2.')
+  xnu_v2=$(/binpack/usr/bin/uname -v  | /binpack/usr/bin/grep '8792.40.')
+  xnu_v3=$(/binpack/usr/bin/uname -v  | /binpack/usr/bin/grep '8792.42.')
+
+  if [ "$xnu_v0" ] || [ "$xnu_v1" ] || [ "$xnu_v2" ] || [ "$xnu_v3" ]; then
+   echo '[*] copying /System/Library/Caches'
+   /binpack/bin/mkdir /tmp/mnt1/fs/System
+   /binpack/bin/mkdir /tmp/mnt1/fs/System/Library
+   /binpack/bin/cp -aRp /tmp/mnt0/System/Library/Caches /tmp/mnt1/fs/System/Library/
+   /binpack/bin/mkdir /tmp/mnt1/fs/System/Library/Caches/com.apple.dyld
+   echo "" > /tmp/mnt1/.bind_cache
+  else
+   echo '[*] SKIP: /System/Library/Caches'
+  fi
  fi
  
  echo '[*] SKIP: /System'
  #/binpack/bin/cp -aRp /tmp/mnt0/System /tmp/mnt1/
- mkdir /tmp/mnt1/System
+ /binpack/bin/mkdir /tmp/mnt1/System
 
  echo "" > /tmp/mnt1/.bind_system
 
@@ -374,7 +384,7 @@ if [ $1 == "-u" ]; then
  
  newroot=$disk's'${i}
 
- mkdir /tmp/mnt1
+ /binpack/bin/mkdir /tmp/mnt1
 
  /sbin/mount_apfs $newroot /tmp/mnt1
 
@@ -410,6 +420,19 @@ if [ $1 == "-u" ]; then
  /binpack/bin/rm -rf /tmp/mnt1/fake/loaderd
  /binpack/bin/sync
  /binpack/bin/cp -aRp /binpack/usr/share/bakera1n/loaderd /tmp/mnt1/fake/loaderd
+
+ if [ $iOS == 16 ]; then
+  xnu_v0=$(/binpack/usr/bin/uname -v  | /binpack/usr/bin/grep '8792.0.')
+  xnu_v1=$(/binpack/usr/bin/uname -v  | /binpack/usr/bin/grep '8792.2.')
+  xnu_v2=$(/binpack/usr/bin/uname -v  | /binpack/usr/bin/grep '8792.40.')
+  xnu_v3=$(/binpack/usr/bin/uname -v  | /binpack/usr/bin/grep '8792.42.')
+
+  if [ "$xnu_v0" ] || [ "$xnu_v1" ] || [ "$xnu_v2" ] || [ "$xnu_v3" ]; then
+   echo "" > /tmp/mnt1/.bind_cache
+  else
+   echo '[*] SKIP: bind_cache'
+  fi
+ fi
 
  sleep 1
  
