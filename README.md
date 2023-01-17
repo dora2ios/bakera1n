@@ -60,7 +60,13 @@ fsutil.sh -c
 fsutil.sh -p
 ```
 
-### (5) check writable partition (iOS side)  
+### (6) install rootful stuff in writable partition (iOS side)  
+```
+fsutil.sh -u
+...
+
+
+### (6) check writable partition (iOS side)  
 ```
 fsutil.sh -s
 ...
@@ -68,18 +74,18 @@ fsutil.sh -s
 ```
 - this case, root_device is `disk0s1s8`  
 
-### (6) rootful boot (if root_device = `disk0s1s8`)
+### (7) rootful boot (if root_device = `disk0s1s8`)
 ```
 ./checkra1n -pvE
 ./bakera1n_loader -a -r disk0s1s8
 ```
 
-### (7) connect to iOS device via dropbear
+### (8) connect to iOS device via dropbear
 ```
 ssh root@localhost -p <port>
 ```
 
-### (8) install bootstrap (iOS side)  
+### (9) install bootstrap (iOS side)  
 ```
 /binpack/usr/bin/curl -sLO https://cdn.discordapp.com/attachments/1017153024768081921/1026161261077090365/bootstrap-ssh.tar
 /binpack/usr/bin/curl -sLO https://github.com/coolstar/Odyssey-bootstrap/raw/master/org.swift.libswift_5.0-electra2_iphoneos-arm.deb
