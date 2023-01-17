@@ -85,8 +85,6 @@ void reloadSystem(uint64_t envflag)
             substrateFlag |= kBRBakeSubstrate_Ellekit;
         }
         
-        
-        // linking dyld_cache
         if(userspace_reboot)
         {
             DEVLOG("Detected userspace reboot, skip it.");
@@ -96,6 +94,7 @@ void reloadSystem(uint64_t envflag)
                 (kCFCoreFoundationVersionNumber <= kCFCoreFoundationVersionNumber_iOS_16_1_2) &&
                 (kCFCoreFoundationVersionNumber > kCFCoreFoundationVersionNumber_iOS_16))
         {
+            // linking dyld_cache
             if(stat("/System/Library/Caches/com.apple.dyld", &st))
             {
                 mkdir("/System/Library/Caches/com.apple.dyld", 0755);
