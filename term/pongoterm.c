@@ -522,7 +522,7 @@ static void* io_main(void *arg)
                         if(ret == USB_RET_SUCCESS)
                         {
                             LOG("%s", "modload");
-                            if(!use_rootful)
+                            if(!root_device)
                                 CURRENT_STAGE = SEND_STAGE_RAMDISK;
                             else
                                 CURRENT_STAGE = SETUP_STAGE_ROOTDEV;
@@ -640,9 +640,12 @@ static void* io_main(void *arg)
                     if(CURRENT_STAGE == SETUP_STAGE_KPF_FLAGS)
                     {
                         
-                        if(use_rootful)
+                        if(root_device)
                         {
-                            kpf_flags |= checkrain_kpf_option_rootfull;
+                            if(use_rootful)
+                            {
+                                kpf_flags |= checkrain_kpf_option_rootfull;
+                            }
                             kpf_flags |= checkrain_kpf_option_fakelaunchd;
                         }
                         
@@ -671,10 +674,13 @@ static void* io_main(void *arg)
                         {
                             checkra1n_flags |= checkrain_option_bind_mount;
                         }
-                        else if(use_rootful)
+                        else if(root_device)
                         {
                             checkra1n_flags &= ~checkrain_option_bind_mount;
-                            checkra1n_flags |= checkrain_option_rootfull;
+                            if(use_rootful)
+                            {
+                                checkra1n_flags |= checkrain_option_rootfull;
+                            }
                         }
                         
                         char str[64];
@@ -719,7 +725,7 @@ static void* io_main(void *arg)
                         else
                         {
                             char* defaultBootArgs = NULL;
-                            if(use_rootful)
+                            if(root_device)
                                 defaultBootArgs = "serial=3";
                             else
                                 defaultBootArgs = "rootdev=md0 serial=3";
@@ -908,7 +914,7 @@ static void io_stop(stuff_t *stuff)
 
 static void usage(const char* s)
 {
-    LOG("Usage: %s [-abhn] [-e <boot-args>] [-r <root_device>]", s);
+    LOG("Usage: %s [-abhn] [-e <boot-args>] [-r/u <root_device>]", s);
     return;
 }
 
@@ -922,16 +928,17 @@ int main(int argc, char** argv)
     
     int opt = 0;
     static struct option longopts[] = {
-        { "help",           no_argument,       NULL, 'h' },
-        { "autoboot",       no_argument,       NULL, 'a' },
-        { "noBlockIO",      no_argument,       NULL, 'n' },
-        { "extra-bootargs", required_argument, NULL, 'e' },
-        { "bindfs",         no_argument,       NULL, 'b' },
-        { "rootful",        required_argument, NULL, 'r' },
+        { "help",               no_argument,       NULL, 'h' },
+        { "autoboot",           no_argument,       NULL, 'a' },
+        { "noBlockIO",          no_argument,       NULL, 'n' },
+        { "extra-bootargs",     required_argument, NULL, 'e' },
+        { "bindfs",             no_argument,       NULL, 'b' },
+        { "rootful",            required_argument, NULL, 'u' },
+        { "stable-rootless",    required_argument, NULL, 'r' },
         { NULL, 0, NULL, 0 }
     };
     
-    while ((opt = getopt_long(argc, argv, "ahne:br:", longopts, NULL)) > 0) {
+    while ((opt = getopt_long(argc, argv, "ahne:bu:r:", longopts, NULL)) > 0) {
         switch (opt) {
             case 'h':
                 usage(argv[0]);
@@ -957,8 +964,16 @@ int main(int argc, char** argv)
                 use_bindfs = 1;
                 break;
                 
-            case 'r':
+            case 'u':
                 use_rootful = 1;
+                if (optarg) {
+                    root_device = strdup(optarg);
+                    LOG("rootdevice: [%s]", root_device);
+                }
+                break;
+                
+            case 'r':
+                use_rootful = 0;
                 if (optarg) {
                     root_device = strdup(optarg);
                     LOG("rootdevice: [%s]", root_device);

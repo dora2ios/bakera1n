@@ -51,7 +51,7 @@ fsutil.sh -s
 ### (7) rootful boot (if root_device = `disk0s1s8`)
 ```
 ./checkra1n -pvE
-./bakera1n_loader -a -r disk0s1s8
+./bakera1n_loader -a -u disk0s1s8
 ```
 
 ### (8) connect to iOS device via dropbear

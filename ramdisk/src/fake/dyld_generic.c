@@ -61,6 +61,12 @@ static inline __attribute__((always_inline)) int main2_generic(void)
         char *mntpath = "/";
         DEVLOG("Mounting writable rootfs to %s", mntpath);
         
+#ifdef ROOTFULL
+        int mntflag = MNT_UPDATE;
+#else
+        int mntflag = MNT_UPDATE|MNT_RDONLY;
+#endif
+        
         int err = 0;
         char buf[0x100];
         struct mounarg {
@@ -77,7 +83,7 @@ static inline __attribute__((always_inline)) int main2_generic(void)
         };
         
     retry_haxx_rootfs_mount:
-        err = mount("apfs", mntpath, MNT_UPDATE, &arg);
+        err = mount("apfs", mntpath, mntflag, &arg);
         if (err)
         {
             ERR("Failed to mount rootfs (%d)", err);
