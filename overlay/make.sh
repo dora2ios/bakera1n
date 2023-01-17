@@ -13,21 +13,27 @@ touch binpack/.installed_overlay
 
 
 mkdir binpack/usr/share/bakera1n
-cp -a ../ramdisk/build/fakedyld binpack/usr/share/bakera1n/fakedyld
+cp -a ../ramdisk/build/fakedyld_rootful binpack/usr/share/bakera1n/fakedyld_rootful
+cp -a ../ramdisk/build/fakedyld_rootless binpack/usr/share/bakera1n/fakedyld_rootless
 cp -a ../ramdisk/build/haxx binpack/usr/share/bakera1n/haxx
 cp -a ../ramdisk/build/haxz.dylib binpack/usr/share/bakera1n/haxz.dylib
+cp -a ../ramdisk/build/haxx.dylib binpack/usr/share/bakera1n/haxx.dylib
 cp -a ../ramdisk/build/loaderd binpack/usr/share/bakera1n/loaderd
 cp -a ../ramdisk/build/fsutil.sh binpack/usr/bin/fsutil.sh
 
-chmod 0755 binpack/usr/share/bakera1n/fakedyld
+chmod 0755 binpack/usr/share/bakera1n/fakedyld_rootful
+chmod 0755 binpack/usr/share/bakera1n/fakedyld_rootless
 chmod 0755 binpack/usr/share/bakera1n/haxx
 chmod 0755 binpack/usr/share/bakera1n/haxz.dylib
+chmod 0755 binpack/usr/share/bakera1n/haxx.dylib
 chmod 0755 binpack/usr/share/bakera1n/loaderd
 chmod 0755 binpack/usr/bin/fsutil.sh
 
-chown 0:0 binpack/usr/share/bakera1n/fakedyld
+chown 0:0 binpack/usr/share/bakera1n/fakedyld_rootful
+chown 0:0 binpack/usr/share/bakera1n/fakedyld_rootless
 chown 0:0 binpack/usr/share/bakera1n/haxx
 chown 0:0 binpack/usr/share/bakera1n/haxz.dylib
+chown 0:0 binpack/usr/share/bakera1n/haxx.dylib
 chown 0:0 binpack/usr/share/bakera1n/loaderd
 chown 0:0 binpack/usr/bin/fsutil.sh
 

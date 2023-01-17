@@ -1,5 +1,5 @@
-#ifndef LOG_H
-#define LOG_H
+#ifndef PLOG_H
+#define PLOG_H
 
 #define LOG(x, ...) \
 do { \

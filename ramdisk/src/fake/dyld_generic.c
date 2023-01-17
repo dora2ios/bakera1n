@@ -1,14 +1,15 @@
 /*
- * bakera1n - fake_dyld_rootful.c
+ * bakera1n - dyld_generic.c
  *
  * Copyright (c) 2023 dora2ios
  *
  */
 
 #include <stdint.h>
+#include <plog.h>
+
 #include "printf.h"
-#include "log.h"
-#include "fake_dyld_utils.h"
+#include "dyld_utils.h"
 
 asm(
     ".globl __dyld_start    \n"
@@ -27,7 +28,7 @@ static char *root_device = NULL;
 static int isOS = 0;
 static char statbuf[0x400];
 
-static inline __attribute__((always_inline)) int main2_rootfull(void)
+static inline __attribute__((always_inline)) int main2_generic(void)
 {
     
     DEVLOG("Searching writable partition");
@@ -137,15 +138,17 @@ static inline __attribute__((always_inline)) int main2_rootfull(void)
         if (mount_bindfs("/System",                 "/fs/orig/System")) goto error_bindfs;
         if (mount_bindfs("/usr/standalone/update",  "/fs/orig/usr/standalone/update")) goto error_bindfs;
         
+#ifdef ROOTFULL
         if((isOS == IS_IOS16) && (!stat("/.bind_cache", statbuf)))
         {
             LOG("Binding Caches");
             if (mount_bindfs("/System/Library/Caches", "/fs/System/Library/Caches")) goto error_bindfs;
         }
+#endif
+        
     }
     
-    
-    LOG("Binding rootfs");
+    LOG("Binding...");
     {
         if (mount_bindfs("/fs/gen", "/fs/fake")) goto error_bindfs;
         
@@ -235,7 +238,7 @@ int main(void)
     
     printf("#==================\n");
     printf("#\n");
-    printf("# bakera1n loader rootful %s\n", VERSION);
+    printf("# bakera1n loader generic %s\n", VERSION);
     printf("#\n");
     printf("# (c) 2023 bakera1n developer\n");
     printf("#==================\n");
@@ -272,7 +275,7 @@ int main(void)
     if(root_device)
     {
         // rootfull
-        return main2_rootfull();
+        return main2_generic();
     }
     
 fatal_err:

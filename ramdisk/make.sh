@@ -106,7 +106,7 @@ cp -a src/fsutil.sh build/fsutil.sh
 chmod 0644 build/fsutil.sh
 
 # inject rootless dylib for launchd
-xcrun -sdk iphoneos clang -arch arm64 -shared src/libpayload.c -DDEVBUILD=1 -o haxx.dylib
+xcrun -sdk iphoneos clang -arch arm64 -shared src/payload/libpayload.c -DDEVBUILD=1 -o haxx.dylib
 strip haxx.dylib
 ldid -S haxx.dylib
 xxd -i haxx.dylib > haxx_dylib.h
@@ -115,18 +115,20 @@ rm -rf haxx_dylib.h
 mv -v ../haxx_dylib.h ./
 cd ..
 mv haxx.dylib $VOLUME/haxx.dylib
+cp -a $VOLUME/haxx.dylib build/haxx.dylib
 chown root:wheel $VOLUME/haxx.dylib
 chmod 0755 $VOLUME/haxx.dylib
+chmod 0644 build/haxx.dylib
 
 # inject rootfull dylib for launchd
-xcrun -sdk iphoneos clang -arch arm64 -shared src/libpayload.c -DROOTFULL=1 -DDEVBUILD=1 -o haxz.dylib
+xcrun -sdk iphoneos clang -arch arm64 -shared src/payload/libpayload.c -DROOTFULL=1 -DDEVBUILD=1 -o haxz.dylib
 strip haxz.dylib
 ldid -S haxz.dylib
 mv haxz.dylib build/haxz.dylib
 chmod 0644 build/haxz.dylib
 
 # payload
-xcrun -sdk iphoneos clang -arch arm64 src/payload.m -o haxx -framework IOKit -framework CoreFoundation -framework Foundation -DDEVBUILD=1 $VERSION_FLAG
+xcrun -sdk iphoneos clang -arch arm64 src/payload/payload.m -o haxx -Isrc/include/ -framework IOKit -framework CoreFoundation -framework Foundation -DDEVBUILD=1 $VERSION_FLAG
 strip haxx
 ldid -Ssrc/ent2.xml haxx
 xxd -i haxx > haxx.h
@@ -149,14 +151,21 @@ chmod 0755 $VOLUME/sbin/launchd
 chmod 0644 build/loaderd
 
 # fake dyld for rootful
-xcrun -sdk iphoneos clang -e__dyld_start -Wl,-dylinker -Wl,-dylinker_install_name,/usr/lib/dyld -nostdlib -static -Wl,-fatal_warnings -Wl,-dead_strip -Wl,-Z --target=arm64-apple-ios12.0 -std=gnu17 -flto -ffreestanding -U__nonnull -nostdlibinc -fno-stack-protector src/fake_dyld_rootful.c src/printf.c src/fake_dyld_utils.c -o com.apple.dyld -DDEVBUILD=1 -DROOTFULL=1 $VERSION_FLAG
+xcrun -sdk iphoneos clang -e__dyld_start -Wl,-dylinker -Wl,-dylinker_install_name,/usr/lib/dyld -nostdlib -static -Wl,-fatal_warnings -Wl,-dead_strip -Wl,-Z --target=arm64-apple-ios12.0 -std=gnu17 -flto -ffreestanding -U__nonnull -nostdlibinc -fno-stack-protector src/fake/dyld_generic.c src/fake/printf.c src/fake/dyld_utils.c -Isrc/include/ -o com.apple.dyld -DDEVBUILD=1 -DROOTFULL=1 $VERSION_FLAG
 strip com.apple.dyld
 ldid -S com.apple.dyld
-mv com.apple.dyld build/fakedyld
-chmod 0644 build/fakedyld
+mv com.apple.dyld build/fakedyld_rootful
+chmod 0644 build/fakedyld_rootful
+
+# fake dyld for rootless
+xcrun -sdk iphoneos clang -e__dyld_start -Wl,-dylinker -Wl,-dylinker_install_name,/usr/lib/dyld -nostdlib -static -Wl,-fatal_warnings -Wl,-dead_strip -Wl,-Z --target=arm64-apple-ios12.0 -std=gnu17 -flto -ffreestanding -U__nonnull -nostdlibinc -fno-stack-protector src/fake/dyld_generic.c src/fake/printf.c src/fake/dyld_utils.c -Isrc/include/ -o com.apple.dyld -DDEVBUILD=1 $VERSION_FLAG
+strip com.apple.dyld
+ldid -S com.apple.dyld
+mv com.apple.dyld build/fakedyld_rootless
+chmod 0644 build/fakedyld_rootless
 
 # fake dyld
-xcrun -sdk iphoneos clang -e__dyld_start -Wl,-dylinker -Wl,-dylinker_install_name,/usr/lib/dyld -nostdlib -static -Wl,-fatal_warnings -Wl,-dead_strip -Wl,-Z --target=arm64-apple-ios12.0 -std=gnu17 -flto -ffreestanding -U__nonnull -nostdlibinc -fno-stack-protector src/fake_dyld.c src/printf.c src/fake_dyld_utils.c -o com.apple.dyld -DDEVBUILD=1 $VERSION_FLAG
+xcrun -sdk iphoneos clang -e__dyld_start -Wl,-dylinker -Wl,-dylinker_install_name,/usr/lib/dyld -nostdlib -static -Wl,-fatal_warnings -Wl,-dead_strip -Wl,-Z --target=arm64-apple-ios12.0 -std=gnu17 -flto -ffreestanding -U__nonnull -nostdlibinc -fno-stack-protector src/fake/dyld_ramdisk.c src/fake/printf.c src/fake/dyld_utils.c -Isrc/include/ -o com.apple.dyld -DDEVBUILD=1 $VERSION_FLAG
 strip com.apple.dyld
 ldid -S com.apple.dyld
 #use custom dyld with dyld_hook

@@ -1,5 +1,5 @@
-#ifndef FAKE_DYLD_UTILS
-#define FAKE_DYLD_UTILS
+#ifndef DYLD_UTILS
+#define DYLD_UTILS
 
 #include <stdint.h>
 

@@ -43,9 +43,9 @@
 #include <errno.h>
 #include <sys/mount.h>
 #include <sys/stat.h>
-#include "log.h"
+#include <plog.h>
 
-#include "dropbear.h"
+#include "../dropbear.h"
 
 #define kCFCoreFoundationVersionNumber_iOS_16       (1900.0)
 #define kCFCoreFoundationVersionNumber_iOS_16_1_2   (1953.1)

@@ -1,17 +1,18 @@
 /*
- * bakera1n - fake_dyld.c
+ * bakera1n - dyld_ramdisk.c
  *
  * Copyright (c) 2023 dora2ios
  *
  */
 
 #include <stdint.h>
-#include "printf.h"
-#include "log.h"
-#include "fake_dyld_utils.h"
+#include <plog.h>
 
-#include "haxx_dylib.h"
-#include "haxx.h"
+#include "printf.h"
+#include "dyld_utils.h"
+
+#include "../haxx_dylib.h"
+#include "../haxx.h"
 
 asm(
     ".globl __dyld_start    \n"

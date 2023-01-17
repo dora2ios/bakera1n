@@ -1,14 +1,15 @@
 /*
- * bakera1n - fake_dyld_utils.c
+ * bakera1n - dyld_utils.c
  *
  * Copyright (c) 2023 dora2ios
  *
  */
 
 #include <stdint.h>
+#include <plog.h>
+
 #include "printf.h"
-#include "log.h"
-#include "fake_dyld_utils.h"
+#include "dyld_utils.h"
 
 static __attribute__((naked)) kern_return_t thread_switch(mach_port_t new_thread, int option, mach_msg_timeout_t time)
 {
