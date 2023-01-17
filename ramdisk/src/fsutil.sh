@@ -50,7 +50,7 @@ if [ $1 == "-c" ] || [ $1 == "-p" ]; then
   exit
  fi
  
- if /binpack/usr/bin/stat /dev/md0 >/dev/null 2>&1; then
+ if ! /binpack/usr/bin/stat /dev/md0 >/dev/null 2>&1; then
   echo '[-] not ramdisk boot'
   exit
  fi
@@ -226,7 +226,7 @@ if [ $1 == "-u" ] || [ $1 == "-r" ]; then
   exit
  fi
 
- if /binpack/usr/bin/stat /dev/md0 >/dev/null 2>&1; then
+ if ! /binpack/usr/bin/stat /dev/md0 >/dev/null 2>&1; then
   echo '[-] not ramdisk boot'
   exit
  fi
