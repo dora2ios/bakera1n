@@ -38,8 +38,7 @@ fsutil.sh -p
 ### (6) install rootful stuff in writable partition (iOS side)  
 ```
 fsutil.sh -u
-...
-
+```
 
 ### (6) check writable partition (iOS side)  
 ```
