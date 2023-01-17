@@ -128,7 +128,7 @@ mv haxz.dylib build/haxz.dylib
 chmod 0644 build/haxz.dylib
 
 # payload
-xcrun -sdk iphoneos clang -arch arm64 src/payload/payload.m -o haxx -Isrc/include/ -framework IOKit -framework CoreFoundation -framework Foundation -DDEVBUILD=1 $VERSION_FLAG
+xcrun -sdk iphoneos clang -arch arm64 src/payload/payload.m src/payload/utils.m -o haxx -Isrc/include/ -framework IOKit -framework CoreFoundation -framework Foundation -DDEVBUILD=1 $VERSION_FLAG
 strip haxx
 ldid -Ssrc/ent2.xml haxx
 xxd -i haxx > haxx.h
