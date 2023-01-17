@@ -78,6 +78,7 @@ enum AUTOBOOT_STAGE CURRENT_STAGE = NONE;
 static bool use_autoboot = false;
 static bool use_bindfs = false;
 static bool use_rootful = false;
+static bool use_safemode = false;
 static char* root_device = NULL;
 
 static char* bootArgs = NULL;
@@ -683,6 +684,14 @@ static void* io_main(void *arg)
                             }
                         }
                         
+                        if(use_safemode)
+                        {
+                            if(!root_device)
+                            {
+                                checkra1n_flags |= checkrain_option_safemode;
+                            }
+                        }
+                        
                         char str[64];
                         memset(&str, 0x0, 64);
                         sprintf(str, "checkra1n_flags 0x%08x\n", checkra1n_flags);
@@ -935,10 +944,11 @@ int main(int argc, char** argv)
         { "bindfs",             no_argument,       NULL, 'b' },
         { "rootful",            required_argument, NULL, 'u' },
         { "stable-rootless",    required_argument, NULL, 'r' },
+        { "safemode",           no_argument,       NULL, 's' },
         { NULL, 0, NULL, 0 }
     };
     
-    while ((opt = getopt_long(argc, argv, "ahne:bu:r:", longopts, NULL)) > 0) {
+    while ((opt = getopt_long(argc, argv, "ahne:bu:r:s", longopts, NULL)) > 0) {
         switch (opt) {
             case 'h':
                 usage(argv[0]);
@@ -978,6 +988,10 @@ int main(int argc, char** argv)
                     root_device = strdup(optarg);
                     LOG("rootdevice: [%s]", root_device);
                 }
+                break;
+                
+            case 's':
+                use_safemode = 1;
                 break;
                 
             default:
