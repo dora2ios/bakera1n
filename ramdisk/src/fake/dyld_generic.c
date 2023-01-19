@@ -144,14 +144,6 @@ static inline __attribute__((always_inline)) int main2_generic(void)
         if (mount_bindfs("/System",                 "/fs/orig/System")) goto error_bindfs;
         if (mount_bindfs("/usr/standalone/update",  "/fs/orig/usr/standalone/update")) goto error_bindfs;
         
-#ifdef ROOTFULL
-        if((isOS == IS_IOS16) && (!stat("/.bind_cache", statbuf)))
-        {
-            LOG("Binding Caches");
-            if (mount_bindfs("/System/Library/Caches", "/fs/System/Library/Caches")) goto error_bindfs;
-        }
-#endif
-        
     }
     
     LOG("Binding...");

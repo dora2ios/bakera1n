@@ -312,26 +312,6 @@ if [ $1 == "-u" ] || [ $1 == "-r" ]; then
   /binpack/bin/cp -aRp /binpack/usr/share/bakera1n/haxx.dylib /tmp/mnt1/haxx.dylib
  fi
  
- if /binpack/usr/bin/stat /tmp/mnt1/.bind_cache >/dev/null 2>&1; then
-  if [ $iOS == 16 ]; then
-   xnu_v0=$(/binpack/usr/bin/uname -v  | /binpack/usr/bin/grep '8792.0.')
-   xnu_v1=$(/binpack/usr/bin/uname -v  | /binpack/usr/bin/grep '8792.2.')
-   xnu_v2=$(/binpack/usr/bin/uname -v  | /binpack/usr/bin/grep '8792.40.')
-   xnu_v3=$(/binpack/usr/bin/uname -v  | /binpack/usr/bin/grep '8792.42.')
-
-   if [ "$xnu_v0" ] || [ "$xnu_v1" ] || [ "$xnu_v2" ] || [ "$xnu_v3" ]; then
-    echo '[*] copying /System/Library/Caches'
-    /binpack/bin/rm -rf /tmp/mnt1/fs/System
-    if [ $1 == "-u" ]; then
-     /binpack/bin/mkdir /tmp/mnt1/fs/System
-     /binpack/bin/mkdir /tmp/mnt1/fs/System/Library
-     /binpack/bin/cp -aRp /tmp/mnt0/System/Library/Caches /tmp/mnt1/fs/System/Library/
-     /binpack/bin/mkdir /tmp/mnt1/fs/System/Library/Caches/com.apple.dyld
-    fi # check rootful
-   fi  # check ios: 16.0-16.1.2
-  fi   # check ios: 16.x
- fi    # check /.bind_cache
- 
  sleep 1
  
  /binpack/bin/sync

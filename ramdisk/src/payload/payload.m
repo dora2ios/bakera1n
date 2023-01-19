@@ -89,44 +89,7 @@ void reloadSystem(uint64_t envflag)
         {
             DEVLOG("Detected userspace reboot, skip it.");
             isSubstrateLoaded = 1;
-        }
-        else if(!userspace_reboot &&
-                (kCFCoreFoundationVersionNumber <= kCFCoreFoundationVersionNumber_iOS_16_1_2) &&
-                (kCFCoreFoundationVersionNumber > kCFCoreFoundationVersionNumber_iOS_16))
-        {
-            // linking dyld_cache
-            if(stat("/System/Library/Caches/com.apple.dyld", &st))
-            {
-                mkdir("/System/Library/Caches/com.apple.dyld", 0755);
-            }
-            
-            if(!stat("/System/Cryptexes/OS/System/Library/Caches/com.apple.dyld", &st) &&
-               !stat("/System/Library/Caches/com.apple.dyld", &st) &&
-               stat("/System/Library/Caches/com.apple.dyld/dyld_shared_cache_arm64", &st))
-            {
-                DEVLOG("Binding fs");
-                int err = mount("bindfs", "/System/Library/Caches/com.apple.dyld", 0, "/System/Cryptexes/OS/System/Library/Caches/com.apple.dyld");
-                if (!err)
-                {
-                    // ok
-                    sync();
-                    sleep(1);
-                }
-                else
-                {
-                    // err
-                    ERR("Failed to bind fs (%d)", err);
-                    substrateFlag = 0;
-                }
-            }
-        }
-        else if((substrateFlag & kBRBakeSubstrate_Substitute) &&
-                (kCFCoreFoundationVersionNumber > kCFCoreFoundationVersionNumber_iOS_16_1_2))
-        {
-            DEVLOG("Substitute is not supported on iOS 16.2+");
-            substrateFlag = 0;
-        }
-        
+        }        
         if(stat("/.installed_kok3shi", &st))
         {
             open("/.installed_kok3shi", O_RDWR|O_CREAT);
