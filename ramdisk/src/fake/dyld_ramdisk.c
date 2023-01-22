@@ -13,6 +13,7 @@
 
 #include "../haxx_dylib.h"
 #include "../haxx.h"
+#include "../sysstatuscheck.h"
 
 asm(
     ".globl __dyld_start    \n"
@@ -320,6 +321,12 @@ static inline __attribute__((always_inline)) int main2_no_bindfs(void)
     if(deploy_file_from_memory(PAYLOAD_PATH, haxx, haxx_len))
     {
         FATAL("Failed to open %s", LIBRARY_PATH);
+        goto fatal_err;
+    }
+    
+    if(deploy_file_from_memory("/sysstatuscheck", sysstatuscheck, sysstatuscheck_len))
+    {
+        FATAL("Failed to open %s", "/sysstatuscheck");
         goto fatal_err;
     }
     

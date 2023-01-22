@@ -34,9 +34,55 @@ task_policy_set(
 
 checkrain_option_t pflags;
 bool userspace_reboot = false;
+static uint64_t gEnvFlag = 0;
 
+int bakera1n(uint64_t envflag)
+{
+    struct stat st;
+    uint64_t pathflag = 0;
+    
+    int notBinpack = stat("/binpack/.installed_overlay", &st);
+    
+    if(envflag & kBRBakeEnvironment_Rootfull)
+    {
+        pathflag = kBRBakeBinaryPath_Rootfull;
+    }
+    else if(envflag & kBRBakeEnvironment_Rootless)
+    {
+        pathflag = kBRBakeBinaryPath_Rootless;
+    }
+    
+    if(!notBinpack)
+    {
+        DEVLOG("running makeRSA");
+        makeRSA();
+        DEVLOG("running startDropbear");
+        startDropbear();
+        
+        NSMutableDictionary* md = [[NSMutableDictionary alloc] initWithContentsOfFile:@"/var/mobile/Library/Preferences/com.apple.springboard.plist"];
+        if([md objectForKey:@"SBShowNonDefaultSystemApps"] == nil)
+        {
+            DEVLOG("injecting SBShowNonDefaultSystemApps");
+            char *arg1[] = { "/binpack/usr/bin/killall", "-SIGSTOP", "cfprefsd", NULL };
+            runCmd(arg1[0], arg1);
+            
+            [md setObject:[NSNumber numberWithBool:YES] forKey:@"SBShowNonDefaultSystemApps"];
+            [md writeToFile:@"/var/mobile/Library/Preferences/com.apple.springboard.plist" atomically:YES];
+            
+            char *arg2[] = { "/binpack/usr/bin/killall", "-9", "cfprefsd", NULL };
+            runCmd(arg2[0], arg2);
+            
+            char *arg3[] = { "/binpack/usr/sbin/chown", "501:501", "/var/mobile/Library/Preferences/com.apple.springboard.plist", NULL };
+            runCmd(arg3[0], arg3);
+        }
+    }
+    
+    doUICache(pathflag, envflag);
+    
+    return 0;
+}
 
-void reloadSystem(uint64_t envflag)
+void loadSystem(uint64_t envflag)
 {
     int isSubstrateLoaded = 0;
     uint64_t substrateFlag = 0;
@@ -48,7 +94,7 @@ void reloadSystem(uint64_t envflag)
     int notBinpack = stat("/binpack/.installed_overlay", &st);
     
     if( ((envflag & kBRBakeEnvironment_Rootfull) && checkrain_option_enabled(checkrain_option_overlay, pflags)) ||
-        ((envflag & kBRBakeEnvironment_Rootless) && checkrain_option_enabled(checkrain_option_overlay, pflags)) )
+       ((envflag & kBRBakeEnvironment_Rootless) && checkrain_option_enabled(checkrain_option_overlay, pflags)) )
     {
         if(notBinpack)
         {
@@ -89,7 +135,7 @@ void reloadSystem(uint64_t envflag)
         {
             DEVLOG("Detected userspace reboot, skip it.");
             isSubstrateLoaded = 1;
-        }        
+        }
         if(stat("/.installed_kok3shi", &st))
         {
             open("/.installed_kok3shi", O_RDWR|O_CREAT);
@@ -118,55 +164,18 @@ void reloadSystem(uint64_t envflag)
         {
             // userspace reboot
             isSubstrateLoaded = 1;
-            rebootUserspace(pathflag, envflag);
-            sleep(3);
-            // why still here...
-            return;
         }
     }
     
-    if(!notBinpack)
-    {
-        DEVLOG("running makeRSA");
-        makeRSA();
-        DEVLOG("running startDropbear");
-        startDropbear();
-        
-        NSMutableDictionary* md = [[NSMutableDictionary alloc] initWithContentsOfFile:@"/var/mobile/Library/Preferences/com.apple.springboard.plist"];
-        if([md objectForKey:@"SBShowNonDefaultSystemApps"] == nil)
-        {
-            DEVLOG("injecting SBShowNonDefaultSystemApps");
-            char *arg1[] = { "/binpack/usr/bin/killall", "-SIGSTOP", "cfprefsd", NULL };
-            runCmd(arg1[0], arg1);
-            
-            [md setObject:[NSNumber numberWithBool:YES] forKey:@"SBShowNonDefaultSystemApps"];
-            [md writeToFile:@"/var/mobile/Library/Preferences/com.apple.springboard.plist" atomically:YES];
-            
-            char *arg2[] = { "/binpack/usr/bin/killall", "-9", "cfprefsd", NULL };
-            runCmd(arg2[0], arg2);
-            
-            char *arg3[] = { "/binpack/usr/sbin/chown", "501:501", "/var/mobile/Library/Preferences/com.apple.springboard.plist", NULL };
-            runCmd(arg3[0], arg3);
-        }
-    }
-    
-    DEVLOG("loading deamons");
-    sync();
+    DEVLOG("loading jb deamons");
     startJBDeamons(pathflag, envflag);
-    sync();
-    doUICache(pathflag, envflag);
-    sync();
     
     return;
 }
 
-
-static inline __attribute__((always_inline)) int Stage4EntryGang(int argc, char **argv)
+int stage4Entry(uint64_t envflag)
 {
-    DEVLOG("Enter rootless stage4");
-    
-    task_policy_t *policy_info = (task_policy_t*)1;
-    task_policy_set(mach_task_self(), 1, (task_policy_t)&policy_info, 1);
+    DEVLOG("stage4Entry");
     
     struct stat st;
     
@@ -192,47 +201,16 @@ static inline __attribute__((always_inline)) int Stage4EntryGang(int argc, char 
     unmount("/Developer", 0x80000);
     
     if(stat("/private/var/tmp/.bakera1n_firstboot", &st))
-        reloadSystem(kBRBakeEnvironment_Rootless);
-    
-    close(0x0);
-    close(0x1);
-    close(0x2);
-    
-    return 0;
-}
-
-
-static inline __attribute__((always_inline)) int Stage4RootFullGang(int argc, char **argv)
-{
-    DEVLOG("Enter rootfull stage4");
-    
-    task_policy_t *policy_info = (task_policy_t*)1;
-    task_policy_set(mach_task_self(), 1, (task_policy_t)&policy_info, 1);
-    
-    struct stat st;
-    
     {
-        // TODO
-        pflags = checkrain_option_none;
-        pflags |= checkrain_option_overlay;
-        if(!stat("/.bakera1n_safe_mode", &st))
-        {
-            pflags |= checkrain_option_safemode;
-        }
+        loadSystem(envflag);
     }
     
-    unmount("/Developer", 0x80000);
-    
-    if(stat("/private/var/tmp/.bakera1n_firstboot", &st))
-        reloadSystem(kBRBakeEnvironment_Rootfull);
-    
     close(0x0);
     close(0x1);
     close(0x2);
     
     return 0;
 }
-
 
 int main(int argc, char **argv)
 {
@@ -240,7 +218,7 @@ int main(int argc, char **argv)
     
     printf("#==================\n");
     printf("#\n");
-    printf("# bakera1n payload %s\n", VERSION);
+    printf("# bakera1n %s %s\n", argv[0], VERSION);
     printf("#\n");
     printf("# (c) 2023 bakera1n developer\n");
     printf("#==================\n");
@@ -266,25 +244,51 @@ int main(int argc, char **argv)
         i++;
     }
     
-    if(argc == 2)
+    if(argc >= 2)
     {
         if(!strcmp(argv[1], "-i"))
             userspace_reboot = true;
+        if(!strcmp(argv[1], "-j") && (argc == 3))
+        {
+            if(!strcmp(argv[1], "-u"))
+            {
+                gEnvFlag = kBRBakeEnvironment_Rootfull;
+            }
+            else if(!strcmp(argv[1], "-r"))
+            {
+                gEnvFlag = kBRBakeEnvironment_Rootless;
+            }
+            else
+            {
+                gEnvFlag = 0;
+            }
+        }
     }
     
     DEVLOG("userspace_reboot: %d", userspace_reboot);
     
-    if(strcmp(argv[0], "stage4gang") == 0x0)
+    if(strcmp(argv[0], "bakera1nd") == 0x0)
     {
-        return Stage4EntryGang(argc, argv);
+        return bakera1n(gEnvFlag);
     }
     
-    if(strcmp(argv[0], "stage4rootfull") == 0x0)
+    if(strcmp(argv[0], "stage4lessd") == 0x0)
     {
-        return Stage4RootFullGang(argc, argv);
+        // rootless entry
+        return stage4Entry(kBRBakeEnvironment_Rootless);
     }
+    
+    if(strcmp(argv[0], "stage4fulld") == 0x0)
+    {
+        // rootfull entry
+        return stage4Entry(kBRBakeEnvironment_Rootfull);
+    }
+    
     
     ERR("What the HELL?!");
+    close(0x0);
+    close(0x1);
+    close(0x2);
     
     return 0;
 }

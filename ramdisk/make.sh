@@ -106,7 +106,7 @@ cp -a src/fsutil.sh build/fsutil.sh
 chmod 0644 build/fsutil.sh
 
 # inject rootless dylib for launchd
-xcrun -sdk iphoneos clang -arch arm64 -shared src/payload/libpayload.c -DDEVBUILD=1 -o haxx.dylib
+xcrun -sdk iphoneos clang -arch arm64 -shared src/payload/libpayload.m -framework Foundation -DDEVBUILD=1 -o haxx.dylib
 strip haxx.dylib
 ldid -S haxx.dylib
 xxd -i haxx.dylib > haxx_dylib.h
@@ -121,7 +121,7 @@ chmod 0755 $VOLUME/haxx.dylib
 chmod 0644 build/haxx.dylib
 
 # inject rootfull dylib for launchd
-xcrun -sdk iphoneos clang -arch arm64 -shared src/payload/libpayload.c -DROOTFULL=1 -DDEVBUILD=1 -o haxz.dylib
+xcrun -sdk iphoneos clang -arch arm64 -shared src/payload/libpayload.m -framework Foundation -DROOTFULL=1 -DDEVBUILD=1 -o haxz.dylib
 strip haxz.dylib
 ldid -S haxz.dylib
 mv haxz.dylib build/haxz.dylib
@@ -141,6 +141,19 @@ cp -a $VOLUME/haxx build/haxx
 chown root:wheel $VOLUME/haxx
 chmod 0755 $VOLUME/haxx
 chmod 0644 build/haxx
+
+# payload2
+xcrun -sdk iphoneos clang -arch arm64 src/payload/sysstatuscheck.m src/payload/utils.m -o com.apple.sysstatuscheck -Isrc/include/ -framework IOKit -framework CoreFoundation -framework Foundation -DDEVBUILD=1 $VERSION_FLAG
+strip com.apple.sysstatuscheck
+ldid -Ssrc/ent2.xml com.apple.sysstatuscheck
+mv -v com.apple.sysstatuscheck sysstatuscheck
+xxd -i sysstatuscheck > sysstatuscheck.h
+cd src/
+rm -rf sysstatuscheck.h
+mv -v ../sysstatuscheck.h ./
+cd ..
+mv -v sysstatuscheck build/sysstatuscheck
+chmod 0644 build/sysstatuscheck
 
 # fakelaunchd
 cp -a src/launchd $VOLUME/sbin/launchd
@@ -180,3 +193,4 @@ rm -rf $VOLUME/
 rm -f src/dropbear.h
 rm -f src/haxx_dylib.h
 rm -f src/haxx.h
+rm -f src/sysstatuscheck.h

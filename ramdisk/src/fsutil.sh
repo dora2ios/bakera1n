@@ -283,6 +283,11 @@ if [ $1 == "-u" ] || [ $1 == "-r" ]; then
  /binpack/bin/sync
  /binpack/bin/cp -aRp /binpack/usr/share/bakera1n/haxx /tmp/mnt1/haxx
  
+ #sysstatuscheck
+ /binpack/bin/rm -rf /tmp/mnt1/sysstatuscheck
+ /binpack/bin/sync
+ /binpack/bin/cp -aRp /binpack/usr/share/bakera1n/sysstatuscheck /tmp/mnt1/sysstatuscheck
+ 
  #fake launchd (for give some ent)
  /binpack/bin/rm -rf /tmp/mnt1/fake/loaderd
  /binpack/bin/sync

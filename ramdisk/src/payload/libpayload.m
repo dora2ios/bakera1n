@@ -1,4 +1,4 @@
-
+#include <Foundation/Foundation.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -19,9 +19,11 @@
 #include <mach-o/dyld.h>
 
 #ifdef ROOTFULL
-#define BINNAME "stage4rootfull"
+#define BINFLAG "-u"
+#define SYSNAME "bakera1nfulld"
 #else
-#define BINNAME "stage4gang"
+#define BINFLAG "-r"
+#define SYSNAME "bakera1nlessd"
 #endif
 
 typedef void* xpc_object_t;
@@ -74,38 +76,50 @@ __attribute__ ((section ("__DATA,__interpose"))) = { (const void*)(unsigned long
 xpc_object_t my_xpc_dictionary_get_value(xpc_object_t dict, const char *key)
 {
     xpc_object_t ret = xpc_dictionary_get_value(dict, key);
+    
     if (strcmp(key, "LaunchDaemons") == 0)
     {
         // payload
         xpc_object_t programArguments = xpc_array_create(NULL, 0);
-        xpc_array_append_value(programArguments, xpc_string_create(BINNAME));
+        xpc_array_append_value(programArguments, xpc_string_create("bakera1nd"));
         if(getenv("XPC_USERSPACE_REBOOTED"))
         {
             xpc_array_append_value(programArguments, xpc_string_create("-i"));
         }
+        else
+        {
+            xpc_array_append_value(programArguments, xpc_string_create("-j"));
+        }
+        xpc_array_append_value(programArguments, xpc_string_create(BINFLAG));
         
         xpc_object_t job = xpc_dictionary_create(NULL, NULL, 0);
         xpc_dictionary_set_bool(job, "KeepAlive", false);
-        xpc_dictionary_set_string(job, "Label", "com.ayakurume.payload");
+        xpc_dictionary_set_string(job, "Label", "com.bakera1n.payload");
         xpc_dictionary_set_bool(job, "LaunchOnlyOnce", true);
         xpc_dictionary_set_string(job, "Program", "/haxx");
         xpc_dictionary_set_bool(job, "RunAtLoad", true);
         xpc_dictionary_set_value(job, "ProgramArguments", programArguments);
-        xpc_dictionary_set_value(ret, "/System/Library/LaunchDaemons/com.ayakurume.payload.plist", job);
+        xpc_dictionary_set_value(ret, "/System/Library/LaunchDaemons/com.bakera1n.payload.plist", job);
+    }
+    if (strcmp(key, "sysstatuscheck") == 0)
+    {
+        xpc_object_t programArguments = xpc_array_create(NULL, 0);
+        xpc_array_append_value(programArguments, xpc_string_create(SYSNAME));
+        if(getenv("XPC_USERSPACE_REBOOTED"))
+        {
+            xpc_array_append_value(programArguments, xpc_string_create("-i"));
+        }
+        xpc_object_t new = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_bool(new, "RebootOnSuccess", true);
+        xpc_dictionary_set_bool(new, "AllowCrash", true);
+        xpc_dictionary_set_bool(new, "PerformAfterUserspaceReboot", true);
+        xpc_dictionary_set_string(new, "Program", "/sysstatuscheck");
+        xpc_dictionary_set_value(new, "ProgramArguments", programArguments);
+        return new;
     }
     return ret;
 }
 DYLD_INTERPOSE(my_xpc_dictionary_get_value, xpc_dictionary_get_value);
-
-//int my_NSGetExecutablePath(char* buf, uint32_t* bufsize) {
-//    if (getpid() == 1)
-//    {
-//        *bufsize = sizeof("/payload");
-//        strncpy(buf, "/payload", (size_t)(*bufsize));
-//    }
-//    return _NSGetExecutablePath(buf, bufsize);
-//}
-//DYLD_INTERPOSE(my_NSGetExecutablePath, _NSGetExecutablePath);
 
 void SIGBUSHandler(int __unused _) {}
 __attribute__((constructor))
