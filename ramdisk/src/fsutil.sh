@@ -159,6 +159,7 @@ if [ $1 == "-c" ] || [ $1 == "-p" ]; then
   echo '[*] SKIP: /System'
   /binpack/bin/mkdir /tmp/mnt1/System
   echo "" > /tmp/mnt1/.bind_system
+  echo "" > /tmp/mnt1/.bind_cache
  fi
  
  sleep 1
