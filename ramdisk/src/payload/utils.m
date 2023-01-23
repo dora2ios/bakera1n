@@ -209,7 +209,7 @@ int makeRSA(void)
     if (!fd)
     {
         DEVLOG("generating rsa key");
-        char *args[] = { "/binpack/usr/bin/dropbearkey", "-t", "rsa", "-f", "/private/var/dropbear_rsa_host_key", NULL };
+        char *args[] = { "/cores/binpack/usr/bin/dropbearkey", "-t", "rsa", "-f", "/private/var/dropbear_rsa_host_key", NULL };
         return runCmd(args[0], args);
     }
     
@@ -230,7 +230,7 @@ int startDropbear(void)
     fflush(outFile);
     fclose(outFile);
     
-    char *args[] = { "/binpack/bin/launchctl", "load", "/tmp/.req/dropbear.plist", NULL };
+    char *args[] = { "/cores/binpack/bin/launchctl", "load", "/tmp/.req/dropbear.plist", NULL };
     return runCmd(args[0], args);
 }
 
@@ -242,7 +242,7 @@ int doUICache(uint64_t pathflag, uint64_t envflag)
     else if(pathflag & kBRBakeBinaryPath_Rootless)
         path = "/var/jb/usr/bin/uicache";
     else if(pathflag & kBRBakeBinaryPath_Binpack)
-        path = "/binpack/usr/bin/uicache";
+        path = "/cores/binpack/usr/bin/uicache";
     
     if(!path)
     {
@@ -267,7 +267,7 @@ int doUICache(uint64_t pathflag, uint64_t envflag)
         char *args[] = { path, "-a", NULL };
         return runCmd(args[0], args);
     }
-    else if(envflag & kBRBakeEnvironment_Rootless)
+    else if((envflag & kBRBakeEnvironment_Rootless) && (pathflag & kBRBakeBinaryPath_Rootless))
     {
         char *arg1[] = { path, "-a", NULL };
         if(runCmd(arg1[0], arg1))
@@ -297,7 +297,6 @@ int doUICache(uint64_t pathflag, uint64_t envflag)
         return 0;
     }
     
-    ERR("why you still here?!");
     return -1;
 }
 
@@ -309,12 +308,12 @@ int startJBDeamons(uint64_t pathflag, uint64_t envflag)
     else if(pathflag & kBRBakeBinaryPath_Rootless)
         path = "/var/jb/bin/launchctl";
     else if(pathflag & kBRBakeBinaryPath_Binpack)
-        path = "/binpack/bin/launchctl";
+        path = "/cores/binpack/bin/launchctl";
     
     if(!path)
     {
         ERR("path is not set");
-        return -1;
+        return 0;
     }
     
     if(!pathflag)
@@ -334,14 +333,12 @@ int startJBDeamons(uint64_t pathflag, uint64_t envflag)
         char *args[] = { path, "load", "/Library/LaunchDaemons", NULL };
         return runCmd(args[0], args);
     }
-    else if(envflag & kBRBakeEnvironment_Rootless)
+    else if((envflag & kBRBakeEnvironment_Rootless) && (pathflag & kBRBakeBinaryPath_Rootless))
     {
         char *args[] = { path, "load", "/var/jb/Library/LaunchDaemons", NULL };
         return runCmd(args[0], args);
     }
     
-    
-    ERR("why you still here?!");
     return -1;
 }
 
@@ -401,7 +398,7 @@ int rebootUserspace(uint64_t pathflag, uint64_t envflag)
     else if(pathflag & kBRBakeBinaryPath_Rootless)
         path = "/var/jb/bin/launchctl";
     else if(pathflag & kBRBakeBinaryPath_Binpack)
-        path = "/binpack/bin/launchctl";
+        path = "/cores/binpack/bin/launchctl";
     
     if(!path)
     {
@@ -427,7 +424,32 @@ int rebootUserspace(uint64_t pathflag, uint64_t envflag)
         return runCmd(args[0], args);
     }
     
-    
-    ERR("why you still here?!");
     return -1;
+}
+
+void rootfullFlags(void)
+{
+    pflags = checkrain_option_none;
+    
+    // def
+    pflags |= checkrain_option_overlay;
+    pflags |= checkrain_option_rootfull;
+    
+    unsigned char buf[256];
+    size_t length = 256;
+    if(!sysctlbyname("kern.bootargs", buf, &length, NULL, 0))
+    {
+        if(strstr((const char *)buf, "BR_safemode="))
+        {
+            pflags |= checkrain_option_safemode;
+        }
+        if(strstr((const char *)buf, "BR_bind_mount="))
+        {
+            pflags |= checkrain_option_bind_mount;
+        }
+        if(strstr((const char *)buf, "BR_no_overlay="))
+        {
+            pflags &= ~checkrain_option_overlay;
+        }
+    }
 }

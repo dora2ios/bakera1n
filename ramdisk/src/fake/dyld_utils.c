@@ -98,6 +98,10 @@ int mkdir(const char *path, int mode)
     return msyscall(SYS_mkdir, path, mode);
 }
 
+int sys_sysctlbyname(const char *name, size_t namelen, void *old, size_t *oldlenp, void *new, size_t newlen)
+{
+    return msyscall(274, name, namelen, old, oldlenp, new, newlen);
+}
 
 void _putchar(char character)
 {

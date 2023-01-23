@@ -19,11 +19,11 @@
 #include <mach-o/dyld.h>
 
 #ifdef ROOTFULL
-#define BINFLAG "-u"
-#define SYSNAME "bakera1nfulld"
+#define ROOTFLAG    "-u"
+#define SYSNAME     "bakera1nfulld"
 #else
-#define BINFLAG "-r"
-#define SYSNAME "bakera1nlessd"
+#define ROOTFLAG    "-r"
+#define SYSNAME     "bakera1nlessd"
 #endif
 
 typedef void* xpc_object_t;
@@ -90,13 +90,13 @@ xpc_object_t my_xpc_dictionary_get_value(xpc_object_t dict, const char *key)
         {
             xpc_array_append_value(programArguments, xpc_string_create("-j"));
         }
-        xpc_array_append_value(programArguments, xpc_string_create(BINFLAG));
+        xpc_array_append_value(programArguments, xpc_string_create(ROOTFLAG));
         
         xpc_object_t job = xpc_dictionary_create(NULL, NULL, 0);
         xpc_dictionary_set_bool(job, "KeepAlive", false);
         xpc_dictionary_set_string(job, "Label", "com.bakera1n.payload");
         xpc_dictionary_set_bool(job, "LaunchOnlyOnce", true);
-        xpc_dictionary_set_string(job, "Program", "/haxx");
+        xpc_dictionary_set_string(job, "Program", "/cores/haxx");
         xpc_dictionary_set_bool(job, "RunAtLoad", true);
         xpc_dictionary_set_value(job, "ProgramArguments", programArguments);
         xpc_dictionary_set_value(ret, "/System/Library/LaunchDaemons/com.bakera1n.payload.plist", job);
@@ -109,11 +109,17 @@ xpc_object_t my_xpc_dictionary_get_value(xpc_object_t dict, const char *key)
         {
             xpc_array_append_value(programArguments, xpc_string_create("-i"));
         }
+        else
+        {
+            xpc_array_append_value(programArguments, xpc_string_create("-j"));
+        }
+        xpc_array_append_value(programArguments, xpc_string_create(ROOTFLAG));
+        
         xpc_object_t new = xpc_dictionary_create(NULL, NULL, 0);
         xpc_dictionary_set_bool(new, "RebootOnSuccess", true);
         xpc_dictionary_set_bool(new, "AllowCrash", true);
         xpc_dictionary_set_bool(new, "PerformAfterUserspaceReboot", true);
-        xpc_dictionary_set_string(new, "Program", "/sysstatuscheck");
+        xpc_dictionary_set_string(new, "Program", "/cores/haxx");
         xpc_dictionary_set_value(new, "ProgramArguments", programArguments);
         return new;
     }

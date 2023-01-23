@@ -7,15 +7,15 @@
 	<key>POSIXSpawnType</key>
 	<string>Interactive</string>
 	<key>Program</key>
-	<string>/binpack/usr/sbin/dropbear</string>
+	<string>/cores/binpack/usr/sbin/dropbear</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/binpack/usr/sbin/dropbear</string>
+		<string>/cores/binpack/usr/sbin/dropbear</string>
 		<string>-i</string>
 		<string>-S</string>
-		<string>/binpack/bin/bash</string>
+		<string>/cores/binpack/bin/bash</string>
 		<string>-H</string>
-		<string>/usr/sbin:/usr/bin:/sbin:/bin:/var/jb/usr/sbin:/var/jb/usr/bin:/var/jb/sbin:/var/jb/bin:/binpack/usr/sbin:/binpack/usr/bin:/binpack/sbin:/binpack/bin</string>
+		<string>/usr/sbin:/usr/bin:/sbin:/bin:/var/jb/usr/sbin:/var/jb/usr/bin:/var/jb/sbin:/var/jb/bin:/cores/binpack/usr/sbin:/cores/binpack/usr/bin:/cores/binpack/sbin:/cores/binpack/bin</string>
 		<string>-r</string>
 		<string>/private/var/dropbear_rsa_host_key</string>
 	</array>

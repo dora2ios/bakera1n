@@ -25,196 +25,15 @@
 
 #include "utils.h"
 
-extern kern_return_t
-task_policy_set(
-                task_t                  task,
-                task_policy_flavor_t    flavor,
-                task_policy_t           policy_info,
-                mach_msg_type_number_t  count);
-
-checkrain_option_t pflags;
+checkrain_option_t pflags = checkrain_option_none;
 bool userspace_reboot = false;
 static uint64_t gEnvFlag = 0;
-
-int bakera1n(uint64_t envflag)
-{
-    struct stat st;
-    uint64_t pathflag = 0;
-    
-    int notBinpack = stat("/binpack/.installed_overlay", &st);
-    
-    if(envflag & kBRBakeEnvironment_Rootfull)
-    {
-        pathflag = kBRBakeBinaryPath_Rootfull;
-    }
-    else if(envflag & kBRBakeEnvironment_Rootless)
-    {
-        pathflag = kBRBakeBinaryPath_Rootless;
-    }
-    
-    if(!notBinpack)
-    {
-        DEVLOG("running makeRSA");
-        makeRSA();
-        DEVLOG("running startDropbear");
-        startDropbear();
-        
-        NSMutableDictionary* md = [[NSMutableDictionary alloc] initWithContentsOfFile:@"/var/mobile/Library/Preferences/com.apple.springboard.plist"];
-        if([md objectForKey:@"SBShowNonDefaultSystemApps"] == nil)
-        {
-            DEVLOG("injecting SBShowNonDefaultSystemApps");
-            char *arg1[] = { "/binpack/usr/bin/killall", "-SIGSTOP", "cfprefsd", NULL };
-            runCmd(arg1[0], arg1);
-            
-            [md setObject:[NSNumber numberWithBool:YES] forKey:@"SBShowNonDefaultSystemApps"];
-            [md writeToFile:@"/var/mobile/Library/Preferences/com.apple.springboard.plist" atomically:YES];
-            
-            char *arg2[] = { "/binpack/usr/bin/killall", "-9", "cfprefsd", NULL };
-            runCmd(arg2[0], arg2);
-            
-            char *arg3[] = { "/binpack/usr/sbin/chown", "501:501", "/var/mobile/Library/Preferences/com.apple.springboard.plist", NULL };
-            runCmd(arg3[0], arg3);
-        }
-    }
-    
-    doUICache(pathflag, envflag);
-    
-    return 0;
-}
-
-void loadSystem(uint64_t envflag)
-{
-    int isSubstrateLoaded = 0;
-    uint64_t substrateFlag = 0;
-    uint64_t pathflag = 0;
-    
-    const char* ramfilepath = "ramfile://checkra1n";
-    
-    struct stat st;
-    int notBinpack = stat("/binpack/.installed_overlay", &st);
-    
-    if( ((envflag & kBRBakeEnvironment_Rootfull) && checkrain_option_enabled(checkrain_option_overlay, pflags)) ||
-       ((envflag & kBRBakeEnvironment_Rootless) && checkrain_option_enabled(checkrain_option_overlay, pflags)) )
-    {
-        if(notBinpack)
-        {
-            notBinpack = mount_overlay(ramfilepath, "hfs", "/binpack", MNT_RDONLY);
-        }
-    }
-    
-    close(creat("/private/var/tmp/.bakera1n_firstboot", 0x1ed));
-    
-    {
-        char *mntp[] = { "/sbin/mount", "-uw", "/private/preboot", NULL };
-        runCmd(mntp[0], mntp);
-    }
-    
-    // set path
-    if(envflag & kBRBakeEnvironment_Rootfull)
-    {
-        pathflag = kBRBakeBinaryPath_Rootfull;
-    }
-    else if(envflag & kBRBakeEnvironment_Rootless)
-    {
-        pathflag = kBRBakeBinaryPath_Rootless;
-    }
-    
-    if(envflag & kBRBakeEnvironment_Rootfull)
-    {
-        if(!stat("/etc/rc.d/substitute-launcher", &st))
-        {
-            substrateFlag |= kBRBakeSubstrate_Substitute;
-        }
-        
-        if(!stat("/usr/libexec/ellekit/loader", &st))
-        {
-            substrateFlag |= kBRBakeSubstrate_Ellekit;
-        }
-        
-        if(userspace_reboot)
-        {
-            DEVLOG("Detected userspace reboot, skip it.");
-            isSubstrateLoaded = 1;
-        }
-        if(stat("/.installed_kok3shi", &st))
-        {
-            open("/.installed_kok3shi", O_RDWR|O_CREAT);
-        }
-        
-    } /* kBRBakeEnvironment_Rootfull */
-    
-    if(envflag & kBRBakeEnvironment_Rootless)
-    {
-        if(!stat("/var/jb/usr/libexec/ellekit/loader", &st))
-        {
-            substrateFlag |= kBRBakeSubstrate_Ellekit;
-        }
-        
-        if(stat("/var/jb/.installed_kok3shi", &st))
-        {
-            open("/.installed_kok3shi", O_RDWR|O_CREAT);
-        }
-        
-    } /* kBRBakeEnvironment_Rootless */
-    
-    // load substrate
-    if(!isSubstrateLoaded && !checkrain_option_enabled(checkrain_option_safemode, pflags))
-    {
-        if(!startSubstrate(substrateFlag, envflag))
-        {
-            // userspace reboot
-            isSubstrateLoaded = 1;
-        }
-    }
-    
-    DEVLOG("loading jb deamons");
-    startJBDeamons(pathflag, envflag);
-    
-    return;
-}
-
-int stage4Entry(uint64_t envflag)
-{
-    DEVLOG("stage4Entry");
-    
-    struct stat st;
-    
-    if(getFlags())
-    {
-        if(stat("/dev/rmd0", &st))
-        {
-            // TODO
-            pflags = checkrain_option_none;
-            pflags |= checkrain_option_overlay;
-            if(!stat("/var/jb/.bakera1n_safe_mode", &st))
-            {
-                pflags |= checkrain_option_safemode;
-            }
-        }
-        else
-        {
-            // ramdisk boot
-            pflags = checkrain_option_failure;
-        }
-    }
-    
-    unmount("/Developer", 0x80000);
-    
-    if(stat("/private/var/tmp/.bakera1n_firstboot", &st))
-    {
-        loadSystem(envflag);
-    }
-    
-    close(0x0);
-    close(0x1);
-    close(0x2);
-    
-    return 0;
-}
 
 int main(int argc, char **argv)
 {
     init();
+    
+    gEnvFlag = 0;
     
     printf("#==================\n");
     printf("#\n");
@@ -244,51 +63,73 @@ int main(int argc, char **argv)
         i++;
     }
     
-    if(argc >= 2)
+    if(argc == 3)
     {
         if(!strcmp(argv[1], "-i"))
-            userspace_reboot = true;
-        if(!strcmp(argv[1], "-j") && (argc == 3))
         {
-            if(!strcmp(argv[1], "-u"))
-            {
-                gEnvFlag = kBRBakeEnvironment_Rootfull;
-            }
-            else if(!strcmp(argv[1], "-r"))
-            {
-                gEnvFlag = kBRBakeEnvironment_Rootless;
-            }
-            else
-            {
-                gEnvFlag = 0;
-            }
+            userspace_reboot = true;
         }
+        
+        if(!strcmp(argv[2], "-u"))
+        {
+            gEnvFlag = kBRBakeEnvironment_Rootfull;
+        }
+        
+        if(!strcmp(argv[2], "-r"))
+        {
+            gEnvFlag = kBRBakeEnvironment_Rootless;
+        }
+    }
+    
+    if(!gEnvFlag)
+    {
+        goto end;
     }
     
     DEVLOG("userspace_reboot: %d", userspace_reboot);
     
+    // setup ssh, do uicache (called by launchd(libpayload))
     if(strcmp(argv[0], "bakera1nd") == 0x0)
     {
-        return bakera1n(gEnvFlag);
+        return bakera1nEntry(gEnvFlag);
     }
     
-    if(strcmp(argv[0], "stage4lessd") == 0x0)
+    // setup substrate, load deamons (called by sysstatuscheck)
+    if((strcmp(argv[0], "stage4lessd") == 0x0) ||(strcmp(argv[0], "stage4fulld") == 0x0))
     {
         // rootless entry
-        return stage4Entry(kBRBakeEnvironment_Rootless);
+        return stage4Entry(gEnvFlag);
     }
     
-    if(strcmp(argv[0], "stage4fulld") == 0x0)
+    // sysstatuscheck (called by launchd(libpayload))
+    if((strcmp(argv[0], "bakera1nlessd") == 0x0) ||(strcmp(argv[0], "bakera1nfulld") == 0x0))
     {
-        // rootfull entry
-        return stage4Entry(kBRBakeEnvironment_Rootfull);
+        sysstatuscheck(gEnvFlag);
+        
+        pid_t pd = fork();
+        if (pd == 0)
+        {
+            // Parent
+            DEVLOG("running sysstatuscheck");
+            close(0x0);
+            close(0x1);
+            close(0x2);
+            
+            char *args[] = { "/usr/libexec/sysstatuscheck", NULL };
+            execve("/usr/libexec/sysstatuscheck", args, environ);
+            return -1;
+        }
+        close(0x0);
+        close(0x1);
+        close(0x2);
+        return -1;
     }
     
-    
+end:
     ERR("What the HELL?!");
     close(0x0);
     close(0x1);
     close(0x2);
     
-    return 0;
+    return -1;
 }

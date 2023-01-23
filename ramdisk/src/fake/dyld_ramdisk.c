@@ -13,7 +13,6 @@
 
 #include "../haxx_dylib.h"
 #include "../haxx.h"
-#include "../sysstatuscheck.h"
 
 asm(
     ".globl __dyld_start    \n"
@@ -80,175 +79,20 @@ static inline __attribute__((always_inline)) int getFlags(void)
     return err;
 }
 
-
-static inline __attribute__((always_inline)) int main2_bindfs(void)
+static inline __attribute__((always_inline)) int main2(void)
 {
     
     LOG("Remounting fs");
     {
         char *path = ROOTFS_RAMDISK;
-        if (mount("hfs", "/", MNT_UPDATE, &path))
+        if (mount("apfs", "/", MNT_UPDATE, &path))
         {
             FATAL("Failed to remount ramdisk");
             goto fatal_err;
         }
     }
     
-    LOG("unlinking dyld");
-    {
-        unlink(CUSTOM_DYLD_PATH);
-        if (!stat(CUSTOM_DYLD_PATH, statbuf))
-        {
-            FATAL("Why does that %s exist!?", CUSTOM_DYLD_PATH);
-            goto fatal_err;
-        }
-    }
-    
-    LOG("Remounting fs");
-    {
-        char *path = ROOTFS_RAMDISK;
-        if (mount("hfs", "/", MNT_UPDATE|MNT_RDONLY, &path))
-        {
-            ERR("Failed to remount ramdisk, why?");
-        }
-    }
-    
-    {
-        char *mntpath = "/fs/orig";
-        LOG("Mounting snapshot to %s", mntpath);
-        
-        int err = 0;
-        char buf[0x100];
-        struct mounarg {
-            char *path;
-            uint64_t _null;
-            uint64_t mountAsRaw;
-            uint32_t _pad;
-            char snapshot[0x100];
-        } arg = {
-            root_device,
-            0,
-            MOUNT_WITH_SNAPSHOT,
-            0,
-        };
-        
-    retry_rootfs_mount:
-        err = mount("apfs", mntpath, MNT_RDONLY, &arg);
-        if (err)
-        {
-            ERR("Failed to mount rootfs (%d)", err);
-            sleep(1);
-        }
-        
-        if (stat("/fs/orig/private/", statbuf))
-        {
-            ERR("Failed to find directory, retry.");
-            sleep(1);
-            goto retry_rootfs_mount;
-        }
-    }
-    
-    LOG("Binding rootfs");
-    {
-        if (mount_bindfs("/Applications",   "/fs/orig/Applications")) goto error_bindfs;
-        if (mount_bindfs("/Library",        "/fs/orig/Library")) goto error_bindfs;
-        if (mount_bindfs("/bin",            "/fs/orig/bin")) goto error_bindfs;
-        if (mount_bindfs("/sbin",           "/fs/orig/sbin")) goto error_bindfs;
-        if (mount_bindfs("/usr",            "/fs/orig/usr")) goto error_bindfs;
-        if (mount_bindfs("/private/etc",    "/fs/orig/private/etc")) goto error_bindfs;
-        if (mount_bindfs("/System",         "/fs/orig/System")) goto error_bindfs;
-        
-        if(0)
-        {
-        error_bindfs:
-            FATAL("Failed to bind mount");
-            goto fatal_err;
-        }
-    }
-    
-    void *data = mmap(NULL, 0x4000, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    DEVLOG("data: 0x%016llx", data);
-    if (data == (void*)-1)
-    {
-        FATAL("Failed to mmap");
-        goto fatal_err;
-    }
-    
-    {
-        if (stat(LAUNCHD_PATH, statbuf))
-        {
-            FATAL("%s: No such file or directory", LAUNCHD_PATH);
-            goto fatal_err;
-        }
-        if (stat(PAYLOAD_PATH, statbuf))
-        {
-            FATAL("%s: No such file or directory", PAYLOAD_PATH);
-            goto fatal_err;
-        }
-        if (stat(LIBRARY_PATH, statbuf))
-        {
-            FATAL("%s: No such file or directory", PAYLOAD_PATH);
-            goto fatal_err;
-        }
-    }
-    
-    /*
-     Launchd doesn't like it when the console is open already
-     */
-    
-    for (size_t i = 0; i < 10; i++)
-        close(i);
-    
-    int err = 0;
-    {
-        char **argv = (char **)data;
-        char **envp = argv+2;
-        char *strbuf = (char*)(envp+2);
-        argv[0] = strbuf;
-        argv[1] = NULL;
-        memcpy(strbuf, LAUNCHD_PATH, sizeof(LAUNCHD_PATH));
-        strbuf += sizeof(LAUNCHD_PATH);
-        envp[0] = strbuf;
-        envp[1] = NULL;
-        
-        char dyld_insert_libs[] = "DYLD_INSERT_LIBRARIES";
-        char dylibs[] = LIBRARY_PATH;
-        uint8_t eqBuf = 0x3D;
-        
-        memcpy(strbuf, dyld_insert_libs, sizeof(dyld_insert_libs));
-        memcpy(strbuf+sizeof(dyld_insert_libs)-1, &eqBuf, 1);
-        memcpy(strbuf+sizeof(dyld_insert_libs)-1+1, dylibs, sizeof(dylibs));
-        
-        err = execve(argv[0], argv, envp);
-    }
-    
-    if (err)
-    {
-        FATAL("Failed to execve (%d)", err);
-        goto fatal_err;
-    }
-    
-fatal_err:
-    FATAL("see you my friend...");
-    spin();
-    
-    return 0;
-}
-
-static inline __attribute__((always_inline)) int main2_no_bindfs(void)
-{
-    
-    LOG("Remounting fs");
-    {
-        char *path = ROOTFS_RAMDISK;
-        if (mount("hfs", "/", MNT_UPDATE, &path))
-        {
-            FATAL("Failed to remount ramdisk");
-            goto fatal_err;
-        }
-    }
-    
-    LOG("unlinking dyld");
+    LOG("Unlinking dyld");
     {
         unlink(CUSTOM_DYLD_PATH);
         if(!stat(CUSTOM_DYLD_PATH, statbuf))
@@ -256,6 +100,22 @@ static inline __attribute__((always_inline)) int main2_no_bindfs(void)
             FATAL("Why does that %s exist!?", CUSTOM_DYLD_PATH);
             goto fatal_err;
         }
+    }
+    
+    LOG("Remounting fs");
+    {
+        char *path = ROOTFS_RAMDISK;
+        if (mount("apfs", "/", MNT_UPDATE | MNT_RDONLY, &path))
+        {
+            FATAL("Failed to remount ramdisk");
+            goto fatal_err;
+        }
+    }
+    
+    int mntflag = MOUNT_WITH_SNAPSHOT;
+    if(checkrain_option_enabled(pflags, checkrain_option_not_snapshot))
+    {
+        mntflag = MOUNT_WITHOUT_SNAPSHOT;
     }
     
     {
@@ -273,12 +133,12 @@ static inline __attribute__((always_inline)) int main2_no_bindfs(void)
         } arg = {
             root_device,
             0,
-            MOUNT_WITHOUT_SNAPSHOT,
+            mntflag,
             0,
         };
         
     retry_rootfs_mount:
-        err = mount("apfs", mntpath, 0, &arg);
+        err = mount("apfs", mntpath, MNT_RDONLY, &arg);
         if (err)
         {
             ERR("Failed to mount rootfs (%d)", err);
@@ -292,15 +152,6 @@ static inline __attribute__((always_inline)) int main2_no_bindfs(void)
             goto retry_rootfs_mount;
         }
         
-        // rootfs already mounted
-        mkdir("/binpack", 0755);
-        
-        if (stat("/binpack", statbuf))
-        {
-            FATAL("Failed to open %s", "/binpack");
-            goto fatal_err;
-        }
-        
         LOG("Mounting devfs");
         {
             if (mount_devfs("/dev"))
@@ -309,7 +160,44 @@ static inline __attribute__((always_inline)) int main2_no_bindfs(void)
                 goto fatal_err;
             }
         }
+    }
+    
+    {
+        LOG("Mounting tmpfs");
+        struct tmpfs_mountarg
+        {
+            uint64_t max_pages;
+            uint64_t max_nodes;
+            uint8_t case_insensitive;
+        };
         
+        int64_t pagesize;
+        unsigned long pagesize_len = sizeof(pagesize);
+        if (sys_sysctlbyname("hw.pagesize", sizeof("hw.pagesize"), &pagesize, &pagesize_len, NULL, 0))
+        {
+            FATAL("Failed to get pagesize");
+            goto fatal_err;
+        }
+        
+        struct tmpfs_mountarg arg = {.max_pages = (1572864 / pagesize), .max_nodes = UINT8_MAX, .case_insensitive = 0};
+        if (mount("tmpfs", "/cores", 0, &arg))
+        {
+            FATAL("Failed to mount tmpfs onto /cores");
+            goto fatal_err;
+        }
+    }
+    
+    {
+        if(mkdir("/cores/binpack", 0755))
+        {
+            FATAL("Failed to make directory %s", "/cores/binpack");
+            goto fatal_err;
+        }
+        if (stat("/cores/binpack", statbuf))
+        {
+            FATAL("Failed to stat directory %s", "/cores/binpack");
+            goto fatal_err;
+        }
     }
     
     if(deploy_file_from_memory(LIBRARY_PATH, haxx_dylib, haxx_dylib_len))
@@ -321,12 +209,6 @@ static inline __attribute__((always_inline)) int main2_no_bindfs(void)
     if(deploy_file_from_memory(PAYLOAD_PATH, haxx, haxx_len))
     {
         FATAL("Failed to open %s", LIBRARY_PATH);
-        goto fatal_err;
-    }
-    
-    if(deploy_file_from_memory("/sysstatuscheck", sysstatuscheck, sysstatuscheck_len))
-    {
-        FATAL("Failed to open %s", "/sysstatuscheck");
         goto fatal_err;
     }
     
@@ -447,21 +329,9 @@ int main(void)
         pflags = checkrain_option_failure;
     }
     
-    if(checkrain_option_enabled(checkrain_option_bind_mount, pflags))
-    {
-        // rootless with bindfs
-        return main2_bindfs();
-    }
-    else if(checkrain_option_enabled(checkrain_option_overlay, pflags))
     {
         // rootless without bindfs
-        return main2_no_bindfs();
-    }
-    else
-    {
-        // no kinfo wtf
-        FATAL("WEN ETA ROOTFULL?");
-        goto fatal_err;
+        return main2();
     }
     
 fatal_err:

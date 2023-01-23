@@ -54,6 +54,7 @@
 #define checkrain_option_overlay            (1 << 2)
 #define checkrain_option_force_revert       (1 << 7) /* keep this at 7 */
 #define checkrain_option_rootfull           (1 << 8)
+#define checkrain_option_not_snapshot       (1 << 9)
 
 enum AUTOBOOT_STAGE {
     NONE,
@@ -79,6 +80,8 @@ static bool use_autoboot = false;
 static bool use_bindfs = false;
 static bool use_rootful = false;
 static bool use_safemode = false;
+static bool no_snapshot = false;
+static bool use_verbose_boot = false;
 static char* root_device = NULL;
 
 static char* bootArgs = NULL;
@@ -565,7 +568,11 @@ static void* io_main(void *arg)
                         if(ret == USB_RET_SUCCESS)
                         {
                             LOG("%s", "ramdisk");
-                            CURRENT_STAGE = SEND_STAGE_OVERLAY;
+                          CURRENT_STAGE = SEND_STAGE_OVERLAY;
+//                          if(!root_device)
+//                              CURRENT_STAGE = SEND_STAGE_OVERLAY;
+//                          else
+//                              CURRENT_STAGE = SETUP_STAGE_ROOTDEV;
                         }
                         else
                         {
@@ -650,6 +657,11 @@ static void* io_main(void *arg)
                             kpf_flags |= checkrain_kpf_option_fakelaunchd;
                         }
                         
+                        if(use_verbose_boot)
+                        {
+                            kpf_flags |= checkrain_option_verbose_boot;
+                        }
+                        
                         char str[64];
                         memset(&str, 0x0, 64);
                         sprintf(str, "kpf_flags 0x%08x\n", kpf_flags);
@@ -675,21 +687,20 @@ static void* io_main(void *arg)
                         {
                             checkra1n_flags |= checkrain_option_bind_mount;
                         }
-                        else if(root_device)
+                        
+                        if(use_rootful)
                         {
-                            checkra1n_flags &= ~checkrain_option_bind_mount;
-                            if(use_rootful)
-                            {
-                                checkra1n_flags |= checkrain_option_rootfull;
-                            }
+                            checkra1n_flags |= checkrain_option_rootfull;
                         }
                         
                         if(use_safemode)
                         {
-                            if(!root_device)
-                            {
-                                checkra1n_flags |= checkrain_option_safemode;
-                            }
+                            checkra1n_flags |= checkrain_option_safemode;
+                        }
+                        
+                        if(no_snapshot)
+                        {
+                            checkra1n_flags |= checkrain_option_not_snapshot;
                         }
                         
                         char str[64];
@@ -713,47 +724,84 @@ static void* io_main(void *arg)
                     
                     if(CURRENT_STAGE == SETUP_STAGE_XARGS)
                     {
+                        char str[256];
+                        memset(&str, 0x0, 256);
+                        
+                        char* defaultBootArgs = NULL;
+                        
+                        defaultBootArgs = "serial=3";
+                        if(!root_device)
+                        {
+                            defaultBootArgs = "serial=3 rootdev=md0";
+                        }
+                        
+                        if(defaultBootArgs)
+                        {
+                            if(strlen(defaultBootArgs) > 256) {
+                                ERR("defaultBootArgs is too large!");
+                                CURRENT_STAGE = USB_TRANSFER_ERROR;
+                                continue;
+                            }
+                            sprintf(str, "%s", defaultBootArgs);
+                        }
+                        
                         if(bootArgs)
                         {
-                            char str[512];
-                            memset(&str, 0x0, 512);
-                            sprintf(str, "xargs %s\n", bootArgs);
-                            ret = USBControlTransfer(stuff->handle, 0x21, 3, 0, 0, (uint32_t)(strlen(str)), str, NULL);
-                            if(ret == USB_RET_SUCCESS)
-                            {
-                                memset(&str, 0x0, 512);
-                                sprintf(str, "xargs %s", bootArgs);
-                                LOG("%s", str);
-                                CURRENT_STAGE = BOOTUP_STAGE;
-                            }
-                            else
-                            {
+                            // sprintf(str, "xargs %s\n", bootArgs);
+                            if((strlen(str) + strlen(bootArgs)) > 256) {
+                                ERR("bootArgs is too large!");
                                 CURRENT_STAGE = USB_TRANSFER_ERROR;
+                                continue;
                             }
+                            sprintf(str, "%s %s", str, bootArgs);
+                        }
+                        
+                        if(root_device)
+                        {
+                            if(use_safemode)
+                            {
+                                if((strlen(str) + sizeof("BR_safemode=1")) > 256) {
+                                    ERR("bootArgs is too large!");
+                                    CURRENT_STAGE = USB_TRANSFER_ERROR;
+                                    continue;
+                                }
+                                sprintf(str, "%s %s", str, "BR_safemode=1");
+                            }
+                            if(use_bindfs)
+                            {
+                                if((strlen(str) + sizeof("BR_bind_mount=1")) > 256) {
+                                    ERR("bootArgs is too large!");
+                                    CURRENT_STAGE = USB_TRANSFER_ERROR;
+                                    continue;
+                                }
+                                sprintf(str, "%s %s", str, "BR_bind_mount=1");
+                            }
+                        }
+                        
+                        if(use_verbose_boot)
+                        {
+                            if((strlen(str) + sizeof("-v")) > 256) {
+                                ERR("bootArgs is too large!");
+                                CURRENT_STAGE = USB_TRANSFER_ERROR;
+                                continue;
+                            }
+                            sprintf(str, "%s %s", str, "-v");
+                        }
+                        
+                        
+                        char xstr[256 + 7];
+                        memset(&xstr, 0x0, 256 + 7);
+                        sprintf(xstr, "xargs %s\n", str);
+                        
+                        ret = USBControlTransfer(stuff->handle, 0x21, 3, 0, 0, (uint32_t)(strlen(xstr)), xstr, NULL);
+                        if(ret == USB_RET_SUCCESS)
+                        {
+                            LOG("%s", str);
+                            CURRENT_STAGE = BOOTUP_STAGE;
                         }
                         else
                         {
-                            char* defaultBootArgs = NULL;
-                            if(root_device)
-                                defaultBootArgs = "serial=3";
-                            else
-                                defaultBootArgs = "rootdev=md0 serial=3";
-                                    
-                            char str[512];
-                            memset(&str, 0x0, 512);
-                            sprintf(str, "xargs %s\n", defaultBootArgs);
-                            ret = USBControlTransfer(stuff->handle, 0x21, 3, 0, 0, (uint32_t)(strlen(str)), str, NULL);
-                            if(ret == USB_RET_SUCCESS)
-                            {
-                                memset(&str, 0x0, 512);
-                                sprintf(str, "xargs %s", defaultBootArgs);
-                                LOG("%s", str);
-                                CURRENT_STAGE = BOOTUP_STAGE;
-                            }
-                            else
-                            {
-                                CURRENT_STAGE = USB_TRANSFER_ERROR;
-                            }
+                            CURRENT_STAGE = USB_TRANSFER_ERROR;
                         }
                         continue;
                     }
@@ -923,7 +971,7 @@ static void io_stop(stuff_t *stuff)
 
 static void usage(const char* s)
 {
-    LOG("Usage: %s [-abhn] [-e <boot-args>] [-r/u <root_device>]", s);
+    LOG("Usage: %s [-ahnsov] [-e <boot-args>] [-u <root_device>]", s);
     return;
 }
 
@@ -941,14 +989,16 @@ int main(int argc, char** argv)
         { "autoboot",           no_argument,       NULL, 'a' },
         { "noBlockIO",          no_argument,       NULL, 'n' },
         { "extra-bootargs",     required_argument, NULL, 'e' },
-        { "bindfs",             no_argument,       NULL, 'b' },
+//      { "bindfs",             no_argument,       NULL, 'b' },
         { "rootful",            required_argument, NULL, 'u' },
-        { "stable-rootless",    required_argument, NULL, 'r' },
+//      { "stable-rootless",    required_argument, NULL, 'r' },
         { "safemode",           no_argument,       NULL, 's' },
+        { "no-snapshot",        no_argument,       NULL, 'o' },
+        { "verbose-boot",       no_argument,       NULL, 'v' },
         { NULL, 0, NULL, 0 }
     };
     
-    while ((opt = getopt_long(argc, argv, "ahne:bu:r:s", longopts, NULL)) > 0) {
+    while ((opt = getopt_long(argc, argv, "ahne:u:sov", longopts, NULL)) > 0) {
         switch (opt) {
             case 'h':
                 usage(argv[0]);
@@ -970,9 +1020,9 @@ int main(int argc, char** argv)
                 }
                 break;
                 
-            case 'b':
-                use_bindfs = 1;
-                break;
+//          case 'b':
+//              use_bindfs = 1;
+//              break;
                 
             case 'u':
                 use_rootful = 1;
@@ -982,16 +1032,24 @@ int main(int argc, char** argv)
                 }
                 break;
                 
-            case 'r':
-                use_rootful = 0;
-                if (optarg) {
-                    root_device = strdup(optarg);
-                    LOG("rootdevice: [%s]", root_device);
-                }
-                break;
+//          case 'r':
+//              use_rootful = 0;
+//              if (optarg) {
+//                  root_device = strdup(optarg);
+//                  LOG("rootdevice: [%s]", root_device);
+//              }
+//              break;
                 
             case 's':
                 use_safemode = 1;
+                break;
+                
+            case 'o':
+                no_snapshot = 1;
+                break;
+                
+            case 'v':
+                use_verbose_boot = 1;
                 break;
                 
             default:

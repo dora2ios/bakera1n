@@ -1,5 +1,5 @@
 /*
- * bakera1n - payload.m
+ * bakera1n - sysstatuscheck.m
  *
  * Copyright (c) 2023 dora2ios
  *
@@ -25,102 +25,34 @@
 
 #include "utils.h"
 
-checkrain_option_t pflags;
-bool userspace_reboot = false;
-
-int rootless(void)
+int sysstatuscheck(uint64_t envflag)
 {
     if(userspace_reboot)
     {
-        char *arg[] = { "stage4lessd", "-i", NULL };
-        runCmd("/haxx", arg);
+        if(envflag & kBRBakeEnvironment_Rootfull)
+        {
+            char *arg[] = { "stage4fulld", "-i", "-u", NULL };
+            runCmd("/cores/haxx", arg);
+        }
+        else if(envflag & kBRBakeEnvironment_Rootless)
+        {
+            char *arg[] = { "stage4lessd", "-i", "-r", NULL };
+            runCmd("/cores/haxx", arg);
+        }
     }
     else
     {
-        char *arg[] = { "stage4lessd", NULL };
-        runCmd("/haxx", arg);
+        if(envflag & kBRBakeEnvironment_Rootfull)
+        {
+            char *arg[] = { "stage4fulld", "-j", "-u", NULL };
+            runCmd("/cores/haxx", arg);
+        }
+        else if(envflag & kBRBakeEnvironment_Rootless)
+        {
+            char *arg[] = { "stage4lessd", "-j", "-r", NULL };
+            runCmd("/cores/haxx", arg);
+        }
     }
     return 0;
 }
 
-int rootful(void)
-{
-    if(userspace_reboot)
-    {
-        char *arg[] = { "stage4fulld", "-i", NULL };
-        runCmd("/haxx", arg);
-    }
-    else
-    {
-        char *arg[] = { "stage4fulld", NULL };
-        runCmd("/haxx", arg);
-    }
-    return 0;
-}
-
-int main(int argc, char **argv)
-{
-    init();
-    
-    printf("#==================\n");
-    printf("#\n");
-    printf("# bakera1n sysstatuscheck %s\n", VERSION);
-    printf("#\n");
-    printf("# (c) 2023 bakera1n developer\n");
-    printf("#==================\n");
-    
-    DEVLOG("Hello check!");
-    
-    pid_t pid = getpid();
-    DEVLOG("pid: %d", pid);
-    DEVLOG("arg: %s", argv[0]);
-    
-    
-    int i = 0;
-    while(environ[i] != NULL)
-    {
-        DEVLOG("env[%d]: %s", i, environ[i]);
-        i++;
-    }
-    
-    i = 0;
-    while(argv[i] != NULL)
-    {
-        DEVLOG("argv[%d]: %s", i, argv[i]);
-        i++;
-    }
-    
-    if(argc == 2)
-    {
-        if(!strcmp(argv[1], "-i"))
-            userspace_reboot = true;
-    }
-    
-    DEVLOG("userspace_reboot: %d", userspace_reboot);
-    
-    // ayyy
-    if(strcmp(argv[0], "bakera1nlessd") == 0x0)
-    {
-        rootless();
-    }
-    
-    if(strcmp(argv[0], "bakera1nfulld") == 0x0)
-    {
-        rootful();
-    }
-    
-    // end
-    close(0x0);
-    close(0x1);
-    close(0x2);
-    
-    pid_t pd = fork();
-    if (pd != 0) {
-        // Parent
-        char *args[] = { "/usr/libexec/sysstatuscheck", NULL };
-        execve("/usr/libexec/sysstatuscheck", args, environ);
-        return -1;
-    }
-    
-    return 0;
-}

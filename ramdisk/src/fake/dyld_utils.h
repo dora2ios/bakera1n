@@ -26,13 +26,13 @@
 #define ROOTFS_RAMDISK      "/dev/md0"
 
 #define LAUNCHD_PATH        "/sbin/launchd"
-#define PAYLOAD_PATH        "/haxx"
+#define PAYLOAD_PATH        "/cores/haxx"
 #define CUSTOM_DYLD_PATH    "/fs/gen/dyld"
 
 #ifdef ROOTFULL
-#define LIBRARY_PATH        "/haxz.dylib"
+#define LIBRARY_PATH        "/cores/haxz.dylib"
 #else
-#define LIBRARY_PATH        "/haxx.dylib"
+#define LIBRARY_PATH        "/cores/haxx.dylib"
 #endif
 
 #define IS_IOS16        (1900)
@@ -86,6 +86,8 @@
 #define checkrain_option_bind_mount         (1 << 1)
 #define checkrain_option_overlay            (1 << 2)
 #define checkrain_option_force_revert       (1 << 7) /* keep this at 7 */
+#define checkrain_option_rootfull           (1 << 8)
+#define checkrain_option_not_snapshot       (1 << 9)
 
 typedef uint32_t checkrain_option_t, *checkrain_option_p;
 
@@ -117,6 +119,7 @@ void _putchar(char character);
 void spin(void);
 void memcpy(void *dst, const void *src, size_t n);
 void memset(void *dst, int c, size_t n);
+int sys_sysctlbyname(const char *name, size_t namelen, void *old, size_t *oldlenp, void *new, size_t newlen);
 
 int mount_bindfs(const char* mountpoint, void* dir);
 int mount_devfs(const char* mountpoint);

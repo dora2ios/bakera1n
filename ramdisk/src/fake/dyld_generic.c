@@ -24,9 +24,57 @@ asm(
     "svc  #0x80             \n"
     );
 
+static checkrain_option_t pflags;
 static char *root_device = NULL;
 static int isOS = 0;
 static char statbuf[0x400];
+
+static inline __attribute__((always_inline)) int checkrain_option_enabled(checkrain_option_t flags, checkrain_option_t opt)
+{
+    if(flags == checkrain_option_failure)
+    {
+        switch(opt)
+        {
+            case checkrain_option_safemode:
+                return 1;
+            default:
+                return 0;
+        }
+    }
+    return (flags & opt) != 0;
+}
+
+static inline __attribute__((always_inline)) int getFlags(void)
+{
+    uint32_t err = 0;
+    
+    size_t sz = 0;
+    struct kerninfo info;
+    int fd = open("/dev/rmd0", O_RDONLY|O_RDWR, 0);
+    if (fd >= 0x1)
+    {
+        read(fd, &sz, 4);
+        lseek(fd, (long)(sz), SEEK_SET);
+        if(read(fd, &info, sizeof(struct kerninfo)) == sizeof(struct kerninfo))
+        {
+            pflags = info.flags;
+            LOG("got flags: %d from stage1", pflags);
+            err = 0;
+        } else
+        {
+            ERR("Read kinfo failed");
+            err = -1;
+        }
+        close(fd);
+    }
+    else
+    {
+        ERR("Open rd failed");
+        err = -1;
+    }
+    
+    return err;
+}
 
 static inline __attribute__((always_inline)) int main2_generic(void)
 {
@@ -61,11 +109,7 @@ static inline __attribute__((always_inline)) int main2_generic(void)
         char *mntpath = "/";
         DEVLOG("Mounting writable rootfs to %s", mntpath);
         
-#ifdef ROOTFULL
         int mntflag = MNT_UPDATE;
-#else
-        int mntflag = MNT_UPDATE|MNT_RDONLY;
-#endif
         
         int err = 0;
         char buf[0x100];
@@ -100,50 +144,6 @@ static inline __attribute__((always_inline)) int main2_generic(void)
             FATAL("Failed to find directory.");
             goto fatal_err;
         }
-    }
-    
-    if (!stat("/.bind_system", statbuf))
-    {
-        DEVLOG("Found bind flag");
-        {
-            char *mntpath = "/fs/orig";
-            DEVLOG("Mounting non-snapshot rootfs to %s", mntpath);
-            
-            int err = 0;
-            char buf[0x100];
-            struct mounarg {
-                char *path;
-                uint64_t _null;
-                uint64_t mountAsRaw;
-                uint32_t _pad;
-                char snapshot[0x100];
-            } arg = {
-                root_device,
-                0,
-                MOUNT_WITHOUT_SNAPSHOT,
-                0,
-            };
-            
-        retry_snapshot_mount:
-            err = mount("apfs", mntpath, MNT_RDONLY, &arg);
-            if (err)
-            {
-                ERR("Failed to mount rootfs (%d)", err);
-                sleep(1);
-                goto retry_snapshot_mount;
-            }
-            if (stat("/fs/orig/private/", statbuf))
-            {
-                FATAL("Failed to find directory.");
-                goto fatal_err;
-            }
-        }
-        
-        //  binding fs
-        LOG("Binding System");
-        if (mount_bindfs("/System",                 "/fs/orig/System")) goto error_bindfs;
-        if (mount_bindfs("/usr/standalone/update",  "/fs/orig/usr/standalone/update")) goto error_bindfs;
-        
     }
     
     LOG("Binding...");
