@@ -25,6 +25,8 @@ all:
 	-$(RM) -r bakera1n_v*.tar.xz
 	-$(RM) -r bakera1n_v*.tar
 	mkdir builtin/
+	cp -a PongoOS/build/Pongo.bin term/Pongo.bin
+	cp -a PongoOS/build/Pongo.bin builtin/Pongo.bin
 	cp -a term/bakera1n_loader builtin/bakera1n_loader
 	cp -a term/boot_sample.sh builtin/boot_sample.sh
 	cp -a term/README.md builtin/README_loader.md

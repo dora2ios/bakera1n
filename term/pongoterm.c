@@ -569,10 +569,6 @@ static void* io_main(void *arg)
                         {
                             LOG("%s", "ramdisk");
                           CURRENT_STAGE = SEND_STAGE_OVERLAY;
-//                          if(!root_device)
-//                              CURRENT_STAGE = SEND_STAGE_OVERLAY;
-//                          else
-//                              CURRENT_STAGE = SETUP_STAGE_ROOTDEV;
                         }
                         else
                         {
@@ -758,6 +754,15 @@ static void* io_main(void *arg)
                         
                         if(root_device)
                         {
+                            {
+                                if((strlen(str) + sizeof("rootdev=") + strlen(root_device)) > 256) {
+                                    ERR("bootArgs is too large!");
+                                    CURRENT_STAGE = USB_TRANSFER_ERROR;
+                                    continue;
+                                }
+                                sprintf(str, "%s rootdev=%s", str, root_device);
+                            }
+                            
                             if(use_safemode)
                             {
                                 if((strlen(str) + sizeof("BR_safemode=1")) > 256) {
