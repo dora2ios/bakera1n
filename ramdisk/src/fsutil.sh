@@ -167,6 +167,10 @@ if [ $1 == "-c" ] || [ $1 == "-p" ]; then
    /cores/binpack/bin/mkdir /tmp/mnt1/System/Library/
    
    if [ $iOS == 15 ]; then
+    #/cores/binpack/bin/cp -aRp /tmp/mnt0/System/Applications /tmp/mnt1/System/
+    #/cores/binpack/bin/cp -aRp /tmp/mnt0/System/Cryptexes /tmp/mnt1/System/
+    /cores/binpack/bin/cp -aRp /tmp/mnt0/System/Developer /tmp/mnt1/System/
+    /cores/binpack/bin/cp -aRp /tmp/mnt0/System/DriverKit /tmp/mnt1/System/
     dir="/tmp/mnt0/System/Library/*"
     for filepath in $dir; do
      if [ -d "$filepath" ]; then
@@ -195,6 +199,10 @@ if [ $1 == "-c" ] || [ $1 == "-p" ]; then
    fi # iOS=15
    
    if [ $iOS == 16 ]; then
+    /cores/binpack/bin/cp -aRp /tmp/mnt0/System/Applications /tmp/mnt1/System/
+    /cores/binpack/bin/cp -aRp /tmp/mnt0/System/Cryptexes /tmp/mnt1/System/
+    /cores/binpack/bin/cp -aRp /tmp/mnt0/System/Developer /tmp/mnt1/System/
+    /cores/binpack/bin/cp -aRp /tmp/mnt0/System/DriverKit /tmp/mnt1/System/
     dir="/tmp/mnt0/System/Library/*"
     for filepath in $dir; do
      if [ -d "$filepath" ]; then
