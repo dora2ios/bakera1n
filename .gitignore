@@ -15,3 +15,4 @@ ramdisk/src/haxx_dylib.h
 
 overlay/binpack.dmg
 overlay/binpack/
+term/Pongo.bin
