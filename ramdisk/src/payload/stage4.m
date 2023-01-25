@@ -116,9 +116,6 @@ static void loadSystem(uint64_t envflag)
         }
     }
     
-    DEVLOG("loading jb deamons");
-    startJBDeamons(pathflag, envflag);
-    
     return;
 }
 

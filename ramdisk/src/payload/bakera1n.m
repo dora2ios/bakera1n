@@ -93,6 +93,9 @@ int bakera1nEntry(uint64_t envflag)
         }
     }
     
+    DEVLOG("loading jb deamons");
+    startJBDeamons(pathflag, envflag);
+    
     doUICache(pathflag, envflag);
     
     close(0x0);
