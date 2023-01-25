@@ -144,11 +144,77 @@ static inline __attribute__((always_inline)) int main2_generic(void)
             FATAL("Failed to find directory.");
             goto fatal_err;
         }
+        if (stat("/fs/orig", statbuf))
+        {
+            FATAL("Failed to find directory.");
+            goto fatal_err;
+        }
     }
     
     LOG("Binding...");
     {
         if (mount_bindfs("/fs/gen", "/fs/fake")) goto error_bindfs;
+        
+        if (stat("/System/Library/Frameworks/IOKit.framework", statbuf))
+        {
+            LOG("Mounting rootfs");
+            {
+                char *mntpath = "/fs/orig";
+                DEVLOG("Mounting rootfs to %s", mntpath);
+                
+                int mntflag = MNT_RDONLY;
+                
+                int err = 0;
+                char buf[0x100];
+                struct mounarg {
+                    char *path;
+                    uint64_t _null;
+                    uint64_t mountAsRaw;
+                    uint32_t _pad;
+                    char snapshot[0x100];
+                } arg = {
+                    root_device,
+                    0,
+                    MOUNT_WITHOUT_SNAPSHOT,
+                    0,
+                };
+                
+            retry_rootfs_mount:
+                err = mount("apfs", mntpath, mntflag, &arg);
+                if (err)
+                {
+                    ERR("Failed to mount rootfs (%d)", err);
+                    sleep(1);
+                    goto retry_rootfs_mount;
+                }
+                if (stat("/fs/orig/private/", statbuf))
+                {
+                    FATAL("Failed to find directory.");
+                    goto fatal_err;
+                }
+            }
+            
+            LOG("More binding...");
+            
+            if (mount_bindfs("/System/Library/Frameworks", "/fs/orig/System/Library/Frameworks")) goto error_bindfs;
+            if (mount_bindfs("/System/Library/AccessibilityBundles", "/fs/orig/System/Library/AccessibilityBundles")) goto error_bindfs;
+            if (mount_bindfs("/System/Library/Assistant", "/fs/orig/System/Library/Assistant")) goto error_bindfs;
+            if (mount_bindfs("/System/Library/Audio", "/fs/orig/System/Library/Audio")) goto error_bindfs;
+            if (mount_bindfs("/System/Library/Fonts", "/fs/orig/System/Library/Fonts")) goto error_bindfs;
+            if (mount_bindfs("/System/Library/Health", "/fs/orig/System/Library/Health")) goto error_bindfs;
+            if (mount_bindfs("/System/Library/LinguisticData", "/fs/orig/System/Library/LinguisticData")) goto error_bindfs;
+            if (mount_bindfs("/System/Library/OnBoardingBundles", "/fs/orig/System/Library/OnBoardingBundles")) goto error_bindfs;
+            if (mount_bindfs("/System/Library/Photos", "/fs/orig/System/Library/Photos")) goto error_bindfs;
+            if (mount_bindfs("/System/Library/PreferenceBundles", "/fs/orig/System/Library/PreferenceBundles")) goto error_bindfs;
+            if (mount_bindfs("/System/Library/PreinstalledAssetsV2", "/fs/orig/System/Library/PreinstalledAssetsV2")) goto error_bindfs;
+            if (mount_bindfs("/System/Library/PrivateFrameworks", "/fs/orig/System/Library/PrivateFrameworks")) goto error_bindfs;
+            if (mount_bindfs("/usr/standalone/update", "/fs/orig/usr/standalone/update")) goto error_bindfs;
+            
+            if(isOS == IS_IOS15)
+                if (mount_bindfs("/System/Library/Caches", "/fs/orig/System/Library/Caches")) goto error_bindfs;
+            
+        }
+        
         
         if(0)
         {

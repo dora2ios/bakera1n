@@ -1,10 +1,15 @@
 usr/standalone/update/
-System/Library/Caches/Frameworks/
+
+System/Library/AccessibilityBundles/
+System/Library/Assistant/
+System/Library/Audio/
 System/Library/Fonts/
 System/Library/Frameworks/
 System/Library/Health/
 System/Library/LinguisticData/
-System/Library/NanoTimeKit/
+System/Library/OnBoardingBundles/
+System/Library/Photos/
+System/Library/PreferenceBundles/
 System/Library/PreinstalledAssetsV2/
 System/Library/PrivateFrameworks/
 

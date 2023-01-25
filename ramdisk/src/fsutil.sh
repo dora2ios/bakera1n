@@ -18,13 +18,14 @@ echo '#================'
 if [ $# != 1 ]; then
  echo 'usage: '$0' [-csu]'
  echo '   -c: create writable fs with full copy mode'
+ echo '   -p: create writable fs with partial copy mode'
  echo '   -s: show location of writable fs'
  echo '   -u: install or update rootfull stuff for writable fs'
  exit
 fi
 
 
-if [ $1 == "-c" ]; then
+if [ $1 == "-c" ] || [ $1 == "-p" ]; then
  echo "[*] Create Mode"
  ######## start ########
  
@@ -151,8 +152,77 @@ if [ $1 == "-c" ]; then
   /cores/binpack/bin/cp -aRp /tmp/mnt0/tmp /tmp/mnt1/
   echo '[*] copying /var'
   /cores/binpack/bin/cp -aRp /tmp/mnt0/var /tmp/mnt1/
-  echo '[*] copying /System'
-  /cores/binpack/bin/cp -aRp /tmp/mnt0/System /tmp/mnt1/
+  if [ $1 == "-c" ]; then
+   echo '[*] copying /System'
+   /cores/binpack/bin/cp -aRp /tmp/mnt0/System /tmp/mnt1/
+  fi
+  
+  if [ $1 == "-p" ]; then
+   echo '[*] cleaning standalone'
+   /cores/binpack/bin/rm -rf /tmp/mnt1/usr/standalone/update
+   /cores/binpack/bin/mkdir /tmp/mnt1/usr/standalone/update
+   
+   echo '[*] copying /System'
+   /cores/binpack/bin/mkdir /tmp/mnt1/System/
+   /cores/binpack/bin/mkdir /tmp/mnt1/System/Library/
+   
+   if [ $iOS == 15 ]; then
+    dir="/tmp/mnt0/System/Library/*"
+    for filepath in $dir; do
+     if [ -d "$filepath" ]; then
+      if [ "$filepath" == "/tmp/mnt0/System/Library/Frameworks" ] ||
+         [ "$filepath" == "/tmp/mnt0/System/Library/AccessibilityBundles" ] ||
+         [ "$filepath" == "/tmp/mnt0/System/Library/Assistant" ] ||
+         [ "$filepath" == "/tmp/mnt0/System/Library/Audio" ] ||
+         [ "$filepath" == "/tmp/mnt0/System/Library/Caches" ] ||
+         [ "$filepath" == "/tmp/mnt0/System/Library/Fonts" ] ||
+         [ "$filepath" == "/tmp/mnt0/System/Library/Health" ] ||
+         [ "$filepath" == "/tmp/mnt0/System/Library/LinguisticData" ] ||
+         [ "$filepath" == "/tmp/mnt0/System/Library/OnBoardingBundles" ] ||
+         [ "$filepath" == "/tmp/mnt0/System/Library/Photos" ] ||
+         [ "$filepath" == "/tmp/mnt0/System/Library/PreferenceBundles" ] ||
+         [ "$filepath" == "/tmp/mnt0/System/Library/PreinstalledAssetsV2" ] ||
+         [ "$filepath" == "/tmp/mnt0/System/Library/PrivateFrameworks" ]; then
+       echo 'SKIP: '$filepath''
+       newpath=$(echo $filepath | sed 's/\/tmp\/mnt0/\/tmp\/mnt1/g')
+       /cores/binpack/bin/mkdir $newpath
+      else
+       echo 'do: '$filepath''
+       /cores/binpack/bin/cp -aRp "$filepath" /tmp/mnt1/System/Library/
+      fi
+     fi
+    done
+   fi # iOS=15
+   
+   if [ $iOS == 16 ]; then
+    dir="/tmp/mnt0/System/Library/*"
+    for filepath in $dir; do
+     if [ -d "$filepath" ]; then
+      if [ "$filepath" == "/tmp/mnt0/System/Library/Frameworks" ] ||
+         [ "$filepath" == "/tmp/mnt0/System/Library/AccessibilityBundles" ] ||
+         [ "$filepath" == "/tmp/mnt0/System/Library/Assistant" ] ||
+         [ "$filepath" == "/tmp/mnt0/System/Library/Audio" ] ||
+         [ "$filepath" == "/tmp/mnt0/System/Library/Fonts" ] ||
+         [ "$filepath" == "/tmp/mnt0/System/Library/Health" ] ||
+         [ "$filepath" == "/tmp/mnt0/System/Library/LinguisticData" ] ||
+         [ "$filepath" == "/tmp/mnt0/System/Library/OnBoardingBundles" ] ||
+         [ "$filepath" == "/tmp/mnt0/System/Library/Photos" ] ||
+         [ "$filepath" == "/tmp/mnt0/System/Library/PreferenceBundles" ] ||
+         [ "$filepath" == "/tmp/mnt0/System/Library/PreinstalledAssetsV2" ] ||
+         [ "$filepath" == "/tmp/mnt0/System/Library/PrivateFrameworks" ]; then
+       echo 'SKIP: '$filepath''
+       newpath=$(echo $filepath | sed 's/\/tmp\/mnt0/\/tmp\/mnt1/g')
+       /cores/binpack/bin/mkdir $newpath
+      else
+       echo 'do: '$filepath''
+       /cores/binpack/bin/cp -aRp "$filepath" /tmp/mnt1/System/Library/
+      fi
+     fi
+    done
+   fi # iOS=16
+   
+  fi # -p
+  
  
  /cores/binpack/bin/mkdir /tmp/mnt1/cores/binpack
  
