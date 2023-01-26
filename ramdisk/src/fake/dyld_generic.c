@@ -207,11 +207,13 @@ static inline __attribute__((always_inline)) int main2_generic(void)
             if (mount_bindfs("/System/Library/Photos", "/fs/orig/System/Library/Photos")) goto error_bindfs;
             if (mount_bindfs("/System/Library/PreferenceBundles", "/fs/orig/System/Library/PreferenceBundles")) goto error_bindfs;
             if (mount_bindfs("/System/Library/PreinstalledAssetsV2", "/fs/orig/System/Library/PreinstalledAssetsV2")) goto error_bindfs;
-            if (mount_bindfs("/System/Library/PrivateFrameworks", "/fs/orig/System/Library/PrivateFrameworks")) goto error_bindfs;
             if (mount_bindfs("/usr/standalone/update", "/fs/orig/usr/standalone/update")) goto error_bindfs;
             
             if(isOS == IS_IOS15)
+            {
                 if (mount_bindfs("/System/Library/Caches", "/fs/orig/System/Library/Caches")) goto error_bindfs;
+                if (mount_bindfs("/System/Library/PrivateFrameworks", "/fs/orig/System/Library/PrivateFrameworks")) goto error_bindfs;
+            }
             
         }
         

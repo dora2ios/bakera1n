@@ -216,8 +216,7 @@ if [ $1 == "-c" ] || [ $1 == "-p" ]; then
          [ "$filepath" == "/tmp/mnt0/System/Library/OnBoardingBundles" ] ||
          [ "$filepath" == "/tmp/mnt0/System/Library/Photos" ] ||
          [ "$filepath" == "/tmp/mnt0/System/Library/PreferenceBundles" ] ||
-         [ "$filepath" == "/tmp/mnt0/System/Library/PreinstalledAssetsV2" ] ||
-         [ "$filepath" == "/tmp/mnt0/System/Library/PrivateFrameworks" ]; then
+         [ "$filepath" == "/tmp/mnt0/System/Library/PreinstalledAssetsV2" ]; then
        echo 'SKIP: '$filepath''
        newpath=$(echo $filepath | sed 's/\/tmp\/mnt0/\/tmp\/mnt1/g')
        /cores/binpack/bin/mkdir $newpath
