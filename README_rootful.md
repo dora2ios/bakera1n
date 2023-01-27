@@ -4,10 +4,10 @@
 ### warn  
 *!! Never update diskev-cmds.!!*  
 
-### (1) 1st boot
+### (1) 1st boot (rootless)
 ```
-./checkra1n -pvE
-./bakera1n_loader -a
+./checkra1n -pvEk Pongo.bin
+./bakera1n_loader -ao
 ```
 
 ### (2) run iproxy (from libimobiledevice)
@@ -28,14 +28,12 @@ fsutil.sh -c
 ### (4) create [partial] writable partition [for 16GB devices] (iOS side)  
 *This mode is still in the testing stage.*  
 *If you have already created a full writable partition, skip this step.*  
-*No writing to /System under this mode.*  
-*iOS 15 may cause SpringBoard hangs, dont use this mode*
 *At your own risk!*  
 ```
 fsutil.sh -p
 ```
 
-### (6) install rootful stuff in writable partition (iOS side)  
+### (5) install rootful stuff in writable partition (iOS side)  
 ```
 fsutil.sh -u
 ```
@@ -50,8 +48,8 @@ fsutil.sh -s
 
 ### (7) rootful boot (if root_device = `disk0s1s8`)
 ```
-./checkra1n -pvE
-./bakera1n_loader -a -u disk0s1s8
+./checkra1n -pvEk Pongo.bin
+./bakera1n_loader -au disk0s1s8
 ```
 
 ### (8) connect to iOS device via dropbear
@@ -61,10 +59,10 @@ ssh root@localhost -p <port>
 
 ### (9) install bootstrap (iOS side)  
 ```
-/binpack/usr/bin/curl -sLO https://cdn.discordapp.com/attachments/1017153024768081921/1026161261077090365/bootstrap-ssh.tar
-/binpack/usr/bin/curl -sLO https://github.com/coolstar/Odyssey-bootstrap/raw/master/org.swift.libswift_5.0-electra2_iphoneos-arm.deb
+curl -sLO https://cdn.discordapp.com/attachments/1017153024768081921/1026161261077090365/bootstrap-ssh.tar
+curl -sLO https://github.com/coolstar/Odyssey-bootstrap/raw/master/org.swift.libswift_5.0-electra2_iphoneos-arm.deb
 tar --preserve-permissions -xvf bootstrap-ssh.tar -C /
-cp -aRp /binpack/bin/launchctl /bin/launchctl
+cp -aRp /cores/binpack/bin/launchctl /bin/launchctl
 /prep_bootstrap.sh
 apt update
 apt install org.coolstar.sileo
@@ -85,10 +83,10 @@ scp -P <port> -O /Users/doraaa/Documents/priv/src/packages/com.ex.substitute_2.3
 
 - iOS side  
 ```
-/binpack/usr/bin/curl -sLO https://apt.bingner.com/debs/1443.00/com.saurik.substrate.safemode_0.9.6005_iphoneos-arm.deb
+curl -sLO https://apt.bingner.com/debs/1443.00/com.saurik.substrate.safemode_0.9.6005_iphoneos-arm.deb
 dpkg -i *.deb
 rm *.deb
-/binpack/bin/launchctl reboot userspace
+/cores/binpack/bin/launchctl reboot userspace
 ```
 
 ### install ellekit  

@@ -1,52 +1,20 @@
 ## how to make rootless mode  
 
+### (0) make
+```
+make
+```
+
 ### (1) 1st boot
 ```
-./checkra1n -pvE
+cd term
+./checkra1n -pvEk Pongo.bin
 ./bakera1n_loader -a
 ```
 
 ### (2) run iproxy (from libimobiledevice)
 ```
 iproxy <port>:44
-```
-
-### (3) connect to iOS device via dropbear
-```
-ssh root@localhost -p <port>
-```
-
-
-### (stable-1) create [full] writable partition [for 32GB+ devices] (iOS side)  
-```
-fsutil.sh -c
-```
-
-### ~~(stable-1) create [partial] writable partition [for 16GB devices] (iOS side)~~  
-*iOS 15 may cause SpringBoard hangs, dont use this mode*
-*At your own risk!*  
-```
-fsutil.sh -p
-```
-
-### (stable-2) install rootless stuff in writable partition (iOS side)  
-```
-fsutil.sh -r
-```
-
-
-### (stable-3) check writable partition (iOS side)  
-```
-fsutil.sh -s
-...
-[+] Found writable root partition at "/dev/disk0s1s8"
-```
-- this case, root_device is `disk0s1s8`  
-
-### (stable-4) rootful boot (if root_device = `disk0s1s8`)
-```
-./checkra1n -pvE
-./bakera1n_loader -a -r disk0s1s8
 ```
 
 ### (3) connect to iOS device via dropbear
