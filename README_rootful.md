@@ -1,8 +1,5 @@
 ## how to make rootfull mode  
-*(ios 15.0 - 16.1.2 only)*  
-
-### warn  
-*!! Never update diskev-cmds.!!*  
+*(ios 15.0 - 16.1.2 only)*   
 
 ### (1) 1st boot (rootless)
 ```
@@ -59,15 +56,19 @@ ssh root@localhost -p <port>
 
 ### (9) install bootstrap (iOS side)  
 ```
-curl -sLO https://cdn.discordapp.com/attachments/1017153024768081921/1026161261077090365/bootstrap-ssh.tar
+curl -sLO https://dora2ios.github.io/ios15/bootstrap-ssh.tar
 curl -sLO https://github.com/coolstar/Odyssey-bootstrap/raw/master/org.swift.libswift_5.0-electra2_iphoneos-arm.deb
+curl -sLO https://dora2ios.github.io/ios15/deb/diskdev-cmds_697-1_iphoneos-arm.deb
+
 tar --preserve-permissions -xvf bootstrap-ssh.tar -C /
 cp -aRp /cores/binpack/bin/launchctl /bin/launchctl
 /prep_bootstrap.sh
 apt update
 apt install org.coolstar.sileo
 dpkg -i org.swift.libswift_5.0-electra2_iphoneos-arm.deb
+dpkg -i diskdev-cmds_697-1_iphoneos-arm.deb
 rm org.swift.libswift_5.0-electra2_iphoneos-arm.deb
+rm diskdev-cmds_697-1_iphoneos-arm.deb
 rm bootstrap-ssh.tar
 ```
 
