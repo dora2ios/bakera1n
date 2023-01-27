@@ -1,3 +1,6 @@
 [submodule "PongoOS"]
 	path = PongoOS
 	url = https://github.com/dora2-iOS/PongoOS
+[submodule "ramdisk/src/libjbinit"]
+	path = ramdisk/src/libjbinit
+	url = https://github.com/dora2-iOS/libjbinit
