@@ -1,7 +1,6 @@
-# ~~kok3shi16 (rootless) with pongoOS~~
 # bakera1n
 
-A rootless/rootful jailbreak toolkit for A8 - A11 / iOS 15.0 - 16(.1.2) for *developers*
+A rootless/rootful jailbreak toolkit for A8 - A11 / iOS 15.0 - 16.1.2 for *developers*
 
 
 ## 警告  
@@ -30,3 +29,4 @@ libirecovery: libimobiledevice
 checkm8 exploit: axi0mx  
 checkra1n 0.1337, pongo-kpf: checkra1n  
 asdfugil: rootdev_module, techniques to prevent haxx.dylib from interfering with device power-off
+tihmstar: jbinit

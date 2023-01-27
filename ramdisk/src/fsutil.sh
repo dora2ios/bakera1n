@@ -6,7 +6,7 @@ found=0
 
 echo '#================'
 echo '#'
-echo '# bakera1n fsutil'
+echo '# bakera1n fsutil.sh'
 echo '#'
 echo '# (c) 2023 bakera1n developeｒ' # not typo
 echo '#'
@@ -16,9 +16,9 @@ echo '#================'
 
 
 if [ $# != 1 ]; then
- echo 'usage: '$0' [-csu]'
+ echo 'usage: '$0' [-cpsu]'
  echo '   -c: create writable fs with full copy mode'
- echo '   -p: create writable fs with partial copy mode'
+ echo '   -p: create writable fs with partial copy mode [beta]'
  echo '   -s: show location of writable fs'
  echo '   -u: install or update rootfull stuff for writable fs'
  exit
