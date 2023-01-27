@@ -28,10 +28,9 @@ all:
 	cp -a PongoOS/build/Pongo.bin term/Pongo.bin
 	cp -a PongoOS/build/Pongo.bin builtin/Pongo.bin
 	cp -a term/bakera1n_loader builtin/bakera1n_loader
-	cp -a term/boot_sample.sh builtin/boot_sample.sh
 	cp -a term/README.md builtin/README_loader.md
 	cp -a README.md builtin/README.md
-	tar -cvf bakera1n_v$(VERSION).tar builtin/bakera1n_loader builtin/boot_sample.sh builtin/README.md builtin/README_loader.md
+	tar -cvf bakera1n_v$(VERSION).tar builtin/bakera1n_loader builtin/README.md builtin/README_loader.md
 	xz -z9k bakera1n_v$(VERSION).tar
 	-$(RM) -r builtin/
 	openssl sha256 bakera1n_v$(VERSION).tar.xz
