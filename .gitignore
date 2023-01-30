@@ -17,3 +17,5 @@ overlay/binpack.dmg
 overlay/binpack/
 term/Pongo.bin
 fixpackage/diskdev-cmds_697-1_iphoneos-arm.deb
+ramdisk/src/hooks/blastdoor.dylib
+ramdisk/src/hooks/libpayload.m
