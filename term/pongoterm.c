@@ -47,7 +47,6 @@
 #define checkrain_option_verbose_boot       (1 << 0)
 #define checkrain_kpf_option_rootfull       (1 << 8)
 #define checkrain_kpf_option_fakelaunchd    (1 << 9)
-#define checkrain_kpf_option_vnode_check_open   (1 << 10)
 
 // Global options
 #define checkrain_option_safemode           (1 << 0)
@@ -83,7 +82,6 @@ static bool use_rootful = false;
 static bool use_safemode = false;
 static bool no_snapshot = false;
 static bool use_verbose_boot = false;
-static bool use_hook_vnode_check_open = false;
 
 static char* root_device = NULL;
 
@@ -661,11 +659,6 @@ static void* io_main(void *arg)
                             kpf_flags |= checkrain_option_verbose_boot;
                         }
                         
-                        if(use_hook_vnode_check_open)
-                        {
-                            kpf_flags |= checkrain_kpf_option_vnode_check_open;
-                        }
-                        
                         char str[64];
                         memset(&str, 0x0, 64);
                         sprintf(str, "kpf_flags 0x%08x\n", kpf_flags);
@@ -1008,11 +1001,10 @@ int main(int argc, char** argv)
         { "safemode",           no_argument,       NULL, 's' },
         { "no-snapshot",        no_argument,       NULL, 'o' },
         { "verbose-boot",       no_argument,       NULL, 'v' },
-        { "vnode_check_open",   no_argument,       NULL, 'k' },
         { NULL, 0, NULL, 0 }
     };
     
-    while ((opt = getopt_long(argc, argv, "ahne:u:sovk", longopts, NULL)) > 0) {
+    while ((opt = getopt_long(argc, argv, "ahne:u:sov", longopts, NULL)) > 0) {
         switch (opt) {
             case 'h':
                 usage(argv[0]);
@@ -1064,10 +1056,6 @@ int main(int argc, char** argv)
                 
             case 'v':
                 use_verbose_boot = 1;
-                break;
-                
-            case 'k':
-                use_hook_vnode_check_open = 1;
                 break;
                 
             default:
