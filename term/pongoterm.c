@@ -42,6 +42,16 @@
 #include "../build/ramdisk.h"
 #include "../build/overlay.h"
 
+static uint8_t* kpf = NULL;
+static uint8_t* ramdisk_dmg = NULL;
+static uint8_t* overlay_dmg = NULL;
+static size_t kpf_len = 0;
+static size_t ramdisk_dmg_len = 0;
+static size_t overlay_dmg_len = 0;
+
+#include "lzfse.h"
+static inline __attribute__((always_inline)) size_t lzfseDec(const uint8_t* src, const size_t src_size, uint8_t** dest);
+
 #define checkrain_option_none               0x00000000
 // KPF options
 #define checkrain_option_verbose_boot       (1 << 0)
@@ -92,6 +102,12 @@ static uint32_t checkra1n_flags = checkrain_option_none;
 #define LOG(fmt, ...) do { fprintf(stderr, "\x1b[1;96m" fmt "\x1b[0m\n", ##__VA_ARGS__); } while(0)
 #define ERR(fmt, ...) do { fprintf(stderr, "\x1b[1;91m" fmt "\x1b[0m\n", ##__VA_ARGS__); } while(0)
 
+#ifdef DEVBUILD
+#define DEVLOG(fmt, ...) do { fprintf(stderr, "\x1b[1;95m" fmt "\x1b[0m\n", ##__VA_ARGS__); } while(0)
+#else
+#define DEVLOG(fmt, ...)
+#endif
+
 // Keep in sync with Pongo
 #define PONGO_USB_VENDOR    0x05ac
 #define PONGO_USB_PRODUCT   0x4141
@@ -132,12 +148,12 @@ typedef IOUSBInterfaceInterface245 **usb_device_handle_t;
 #define USB_RET_SUCCESS         KERN_SUCCESS
 #define USB_RET_NOT_RESPONDING  kIOReturnNotResponding
 
-static inline const char *usb_strerror(usb_ret_t err)
+static inline __attribute__((always_inline)) const char *usb_strerror(usb_ret_t err)
 {
     return mach_error_string(err);
 }
 
-static usb_ret_t USBControlTransfer(usb_device_handle_t handle, uint8_t bmRequestType, uint8_t bRequest, uint16_t wValue, uint16_t wIndex, uint32_t wLength, void *data, uint32_t *wLenDone)
+static inline __attribute__((always_inline)) usb_ret_t USBControlTransfer(usb_device_handle_t handle, uint8_t bmRequestType, uint8_t bRequest, uint16_t wValue, uint16_t wIndex, uint32_t wLength, void *data, uint32_t *wLenDone)
 {
     IOUSBDevRequest request =
     {
@@ -153,7 +169,7 @@ static usb_ret_t USBControlTransfer(usb_device_handle_t handle, uint8_t bmReques
     return ret;
 }
 
-static usb_ret_t USBBulkUpload(usb_device_handle_t handle, void *data, uint32_t len)
+static inline __attribute__((always_inline)) usb_ret_t USBBulkUpload(usb_device_handle_t handle, void *data, uint32_t len)
 {
     return (*handle)->WritePipe(handle, 2, data, len);
 }
@@ -299,7 +315,7 @@ static void LostDevice(void *refCon, io_iterator_t it)
     }
 }
 
-static int pongoterm_main(void)
+static inline __attribute__((always_inline)) int pongoterm_main(void)
 {
     kern_return_t ret;
     stuff_t stuff = {};
@@ -499,6 +515,12 @@ static void* io_main(void *arg)
                     
                     if(CURRENT_STAGE == SEND_STAGE_KPF)
                     {
+                        kpf_len = lzfseDec(kpf_lzfse, kpf_lzfse_len, &kpf);
+                        if(!kpf_len)
+                        {
+                            CURRENT_STAGE = USB_TRANSFER_ERROR;
+                            continue;
+                        }
                         size_t size = kpf_len;
                         ret = USBControlTransfer(stuff->handle, 0x21, 1, 0, 0, 4, &size, NULL);
                         if(ret == USB_RET_SUCCESS)
@@ -517,6 +539,13 @@ static void* io_main(void *arg)
                         else
                         {
                             CURRENT_STAGE = USB_TRANSFER_ERROR;
+                        }
+                        if(kpf)
+                        {
+                            memset(kpf, 0x0, kpf_len);
+                            free((void*)kpf);
+                            kpf = NULL;
+                            kpf_len = 0;
                         }
                         continue;
                     }
@@ -541,6 +570,12 @@ static void* io_main(void *arg)
                     
                     if(CURRENT_STAGE == SEND_STAGE_RAMDISK)
                     {
+                        ramdisk_dmg_len = lzfseDec(ramdisk_dmg_lzfse, ramdisk_dmg_lzfse_len, &ramdisk_dmg);
+                        if(!ramdisk_dmg_len)
+                        {
+                            CURRENT_STAGE = USB_TRANSFER_ERROR;
+                            continue;
+                        }
                         size_t size = ramdisk_dmg_len;
                         ret = USBControlTransfer(stuff->handle, 0x21, 1, 0, 0, 4, &size, NULL);
                         if(ret == USB_RET_SUCCESS)
@@ -559,6 +594,13 @@ static void* io_main(void *arg)
                         else
                         {
                             CURRENT_STAGE = USB_TRANSFER_ERROR;
+                        }
+                        if(ramdisk_dmg)
+                        {
+                            memset(ramdisk_dmg, 0x0, ramdisk_dmg_len);
+                            free((void*)ramdisk_dmg);
+                            ramdisk_dmg = NULL;
+                            ramdisk_dmg_len = 0;
                         }
                         continue;
                     }
@@ -608,6 +650,12 @@ static void* io_main(void *arg)
                     
                     if(CURRENT_STAGE == SEND_STAGE_OVERLAY)
                     {
+                        overlay_dmg_len = lzfseDec(overlay_dmg_lzfse, overlay_dmg_lzfse_len, &overlay_dmg);
+                        if(!overlay_dmg_len)
+                        {
+                            CURRENT_STAGE = USB_TRANSFER_ERROR;
+                            continue;
+                        }
                         size_t size = overlay_dmg_len;
                         ret = USBControlTransfer(stuff->handle, 0x21, 1, 0, 0, 4, &size, NULL);
                         if(ret == USB_RET_SUCCESS)
@@ -622,6 +670,17 @@ static void* io_main(void *arg)
                             {
                                 CURRENT_STAGE = USB_TRANSFER_ERROR;
                             }
+                        }
+                        else
+                        {
+                            CURRENT_STAGE = USB_TRANSFER_ERROR;
+                        }
+                        if(overlay_dmg)
+                        {
+                            memset(overlay_dmg, 0x0, overlay_dmg_len);
+                            free((void*)overlay_dmg);
+                            overlay_dmg = NULL;
+                            overlay_dmg_len = 0;
                         }
                         continue;
                     }
@@ -948,7 +1007,7 @@ bad:;
     exit(-1); // TODO: ok with libusb?
 }
 
-static void io_start(stuff_t *stuff)
+static inline __attribute__((always_inline))  void io_start(stuff_t *stuff)
 {
     int r = pthread_create(&stuff->th, NULL, &io_main, stuff);
     if(r != 0)
@@ -958,7 +1017,7 @@ static void io_start(stuff_t *stuff)
     }
 }
 
-static void io_stop(stuff_t *stuff)
+static inline __attribute__((always_inline))  void io_stop(stuff_t *stuff)
 {
     LOG("[Disconnected]");
     int r = pthread_cancel(stuff->th);
@@ -975,10 +1034,32 @@ static void io_stop(stuff_t *stuff)
     }
 }
 
-static void usage(const char* s)
+static inline __attribute__((always_inline))  void usage(const char* s)
 {
     LOG("Usage: %s [-ahnsov] [-e <boot-args>] [-u <root_device>]", s);
     return;
+}
+
+static inline __attribute__((always_inline))  size_t lzfseDec(const uint8_t* src, const size_t src_size, uint8_t** dest)
+{
+    uint64_t dest_size = (4 * src_size);
+    if(!*dest)
+    {
+        *dest = malloc(dest_size);
+    }
+    
+    if(!*dest)
+    {
+        ERR("error allocating buffer");
+        return 0;
+    }
+    dest_size = lzfse_decode_buffer(*dest, (size_t)dest_size, src, src_size, NULL);
+    if(!dest_size)
+    {
+        ERR("error decompress");
+        return 0;
+    }
+    return dest_size;
 }
 
 int main(int argc, char** argv)

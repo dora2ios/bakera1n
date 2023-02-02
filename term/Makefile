@@ -29,11 +29,11 @@ ifndef $(HOST_OS)
 endif
 
 ifeq ($(HOST_OS),Darwin)
-	C_FLAGS     ?= -Wall -O3 -x objective-c $(CFLAGS)
+	C_FLAGS     ?= -Wall -x objective-c $(CFLAGS)
 	LD_FLAGS    ?= -framework Foundation -framework CoreFoundation -framework IOKit $(LDFLAGS)
 else
 ifeq ($(HOST_OS),Linux)
-	C_FLAGS     ?= -Wall -O3 -DUSE_LIBUSB=1 $(CFLAGS)
+	C_FLAGS     ?= -Wall -DUSE_LIBUSB=1 $(CFLAGS)
 	LD_FLAGS    ?= -lpthread -lusb-1.0 $(LDFLAGS)
 endif
 endif
@@ -42,8 +42,8 @@ endif
 
 all: bakera1n_loader
 
-bakera1n_loader: pongoterm.c
-	$(CC) $(C_FLAGS) -o $@ $^ $(LD_FLAGS)
+bakera1n_loader: pongoterm.c lzfse.c
+	$(CC) -o $@ $^ $(LD_FLAGS) -arch arm64 -arch x86_64
 	strip bakera1n_loader
 
 clean:
