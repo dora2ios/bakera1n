@@ -273,27 +273,6 @@ int doUICache(uint64_t pathflag, uint64_t envflag)
         if(runCmd(arg1[0], arg1))
             return -1;
         
-//        DIR *d = NULL;
-//        struct dirent *dir = NULL;
-//        if ((d = opendir("/var/jb/Applications/"))){
-//            while ((dir = readdir(d))) { //remove all subdirs and files
-//                if (strcmp(dir->d_name, ".") == 0 || strcmp(dir->d_name, "..") == 0) {
-//                    continue;
-//                }
-//                char *pp = NULL;
-//                asprintf(&pp,"/var/jb/Applications/%s", dir->d_name);
-//
-//                char *args[] = { path, "-p", pp, NULL };
-//                if(runCmd(args[0], args))
-//                {
-//                    free(pp);
-//                    closedir(d);
-//                    return -1;
-//                }
-//                free(pp);
-//            }
-//            closedir(d);
-//        }
         return 0;
     }
     
@@ -342,6 +321,52 @@ int startJBDeamons(uint64_t pathflag, uint64_t envflag)
     return -1;
 }
 
+int startRCD(uint64_t envflag)
+{
+    char *pdir = NULL;
+    if(envflag & kBRBakeEnvironment_Rootfull)
+    {
+        pdir = "/etc/rc.d/";
+    }
+    else if(envflag & kBRBakeEnvironment_Rootless)
+    {
+        pdir = "/var/jb/etc/rc.d/";
+    }
+    else
+    {
+        ERR("not set");
+        return -1;
+    }
+    
+    DIR *d = NULL;
+    struct dirent *dir = NULL;
+    if ((d = opendir(pdir)))
+    {
+        while ((dir = readdir(d)))
+        {
+            //remove all subdirs and files
+            if (strcmp(dir->d_name, ".") == 0 || strcmp(dir->d_name, "..") == 0)
+            {
+                continue;
+            }
+            char *pp = NULL;
+            asprintf(&pp,"%s%s", pdir, dir->d_name);
+            
+            char *args[] = { pp, NULL };
+            if(runCmd(args[0], args))
+            {
+                free(pp);
+                closedir(d);
+                return -1;
+            }
+            free(pp);
+        }
+        closedir(d);
+    }
+    
+    return 0;
+}
+
 int startSubstrate(uint64_t typeflag, uint64_t envflag)
 {
     char *path = NULL;
@@ -388,43 +413,6 @@ int startSubstrate(uint64_t typeflag, uint64_t envflag)
     
     char *args[] = { path, NULL };
     return runCmd(args[0], args);
-}
-
-int rebootUserspace(uint64_t pathflag, uint64_t envflag)
-{
-    char *path = NULL;
-    if(pathflag & kBRBakeBinaryPath_Rootfull)
-        path = "/bin/launchctl";
-    else if(pathflag & kBRBakeBinaryPath_Rootless)
-        path = "/var/jb/bin/launchctl";
-    else if(pathflag & kBRBakeBinaryPath_Binpack)
-        path = "/cores/binpack/bin/launchctl";
-    
-    if(!path)
-    {
-        ERR("path is not set");
-        return -1;
-    }
-    
-    if(!pathflag)
-    {
-        ERR("pathflag is not set");
-        return -1;
-    }
-    
-    if(!envflag)
-    {
-        ERR("envflag is not set");
-        return -1;
-    }
-    
-    if((envflag & kBRBakeEnvironment_Rootfull) || (envflag & kBRBakeEnvironment_Rootless))
-    {
-        char *args[] = { path, "reboot", "userspace", NULL };
-        return runCmd(args[0], args);
-    }
-    
-    return -1;
 }
 
 void rootfullFlags(void)
