@@ -28,5 +28,5 @@ binpack: procursus
 libirecovery: libimobiledevice  
 checkm8 exploit: axi0mx  
 checkra1n 0.1337, pongo-kpf: checkra1n  
-asdfugil: rootdev_module, techniques to prevent haxx.dylib from interfering with device power-off
+asdfugil: rootdev_module, techniques to prevent haxx.dylib from interfering with device power-off  
 tihmstar: jbinit
