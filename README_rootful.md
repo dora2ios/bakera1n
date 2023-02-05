@@ -73,6 +73,10 @@ rm bootstrap-ssh.tar
 ```
 
 ### (option) install substitute (macOS/iOS side)  
+add bakera1n repo: https://dora2ios.github.io/ios15  
+then, install substitute via Sileo.  
+
+NOTE: This build of the substitute is still a *TEST VERSION* and may have some defects. Also, this build is redistributed with permission from Sam Bingner. Please use it in a way that does not inconvenience him.  
 
 ### install ellekit  
 ETA: SON
