@@ -22,3 +22,5 @@ ramdisk/src/hooks/libpayload.m
 bin/lzfse
 term/unlzfse
 term/unlzfse.c
+bin/easy_game
+builtin/

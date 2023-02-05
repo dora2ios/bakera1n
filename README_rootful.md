@@ -73,22 +73,6 @@ rm bootstrap-ssh.tar
 ```
 
 ### (option) install substitute (macOS/iOS side)  
-- macOS side (iOS 15.x)  
-```
-scp -P <port> -O /Users/doraaa/Documents/priv/src/packages/com.ex.substitute_2.3.1_iphoneos-arm.deb root@localhost:/var/root/com.ex.substitute_2.3.1_iphoneos-arm.deb
-```
-- macOS side (iOS 16)  
-```
-scp -P <port> -O /Users/doraaa/Documents/priv/src/packages/com.ex.substitute_2.3.1_g_ayyyy_iphoneos-arm.deb root@localhost:/var/root/com.ex.substitute_2.3.1_iphoneos-arm.deb
-```
-
-- iOS side  
-```
-curl -sLO https://apt.bingner.com/debs/1443.00/com.saurik.substrate.safemode_0.9.6005_iphoneos-arm.deb
-dpkg -i *.deb
-rm *.deb
-/cores/binpack/bin/launchctl reboot userspace
-```
 
 ### install ellekit  
 ETA: SON

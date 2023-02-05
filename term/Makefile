@@ -42,8 +42,8 @@ endif
 
 all: bakera1n_loader
 
-bakera1n_loader: pongoterm.c lzfse.c
-	$(CC) -o $@ $^ $(LD_FLAGS) -arch arm64 -arch x86_64
+bakera1n_loader: pongoterm.c
+	$(CC) $(C_FLAGS) -o $@ $^ $(LD_FLAGS) -arch arm64 -arch x86_64
 	strip bakera1n_loader
 
 clean:
