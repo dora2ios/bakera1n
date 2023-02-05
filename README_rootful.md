@@ -1,6 +1,8 @@
 ## how to make rootfull mode  
 *(ios 15.0 - 16.1.2 only)*   
 
+Note: You must download [checkra1n 0.1337.1](https://checkra.in/1337) by yourself.  
+
 ### (1) 1st boot (rootless)
 ```
 ./checkra1n -pvEk Pongo.bin
@@ -22,7 +24,7 @@ ssh root@localhost -p <port>
 fsutil.sh -c
 ```
 
-### (4) create [partial] writable partition [for 16GB devices] (iOS side)  
+### (4) create [partial] writable partition [for iOS 15 && 16GB devices] (iOS side)  
 *This mode is still in the testing stage.*  
 *If you have already created a full writable partition, skip this step.*  
 *At your own risk!*  
