@@ -1,7 +1,7 @@
 
 .PHONY: all clean
 
-VERSION ?= 2.2.1-$(shell git rev-parse HEAD | cut -c1-8)
+VERSION ?= 2.2.2-$(shell git rev-parse HEAD | cut -c1-8)
 
 all:
 	-$(RM) -r build/

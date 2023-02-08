@@ -317,7 +317,7 @@ static inline __attribute__((always_inline)) int pongoterm_main(void)
         @"idProduct": @PONGO_USB_PRODUCT,
     };
     CFDictionaryRef cfdict = (__bridge CFDictionaryRef)dict;
-    IONotificationPortRef notifyPort = IONotificationPortCreate(kIOMainPortDefault);
+    IONotificationPortRef notifyPort = IONotificationPortCreate(kIOMasterPortDefault);
     CFRunLoopAddSource(CFRunLoopGetCurrent(), IONotificationPortGetRunLoopSource(notifyPort), kCFRunLoopDefaultMode);
 
     CFRetain(cfdict);

@@ -30,7 +30,7 @@ endif
 
 ifeq ($(HOST_OS),Darwin)
 	C_FLAGS     ?= -Wall -x objective-c $(CFLAGS)
-	LD_FLAGS    ?= -framework Foundation -framework CoreFoundation -framework IOKit $(LDFLAGS)
+	LD_FLAGS    ?= -framework Foundation -framework CoreFoundation -framework IOKit $(LDFLAGS) -mmacosx-version-min=10.11
 else
 ifeq ($(HOST_OS),Linux)
 	C_FLAGS     ?= -Wall -DUSE_LIBUSB=1 $(CFLAGS)
