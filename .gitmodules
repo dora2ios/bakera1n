@@ -4,3 +4,7 @@
 [submodule "ramdisk/src/libjbinit"]
 	path = ramdisk/src/libjbinit
 	url = https://github.com/dora2-iOS/libjbinit
+[submodule "ra1npoc15"]
+	path = ra1npoc15
+	url = https://github.com/kok3shiDev/ra1npoc15
+
