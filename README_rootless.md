@@ -9,7 +9,7 @@ make
 ```
 cd term
 ./checkra1n -pvEk Pongo.bin
-./bakera1n_loader -a
+./bakera1n_loader -p
 ```
 
 ### (2) run iproxy (from libimobiledevice)

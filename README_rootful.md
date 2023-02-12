@@ -6,7 +6,7 @@ Note: You must download [checkra1n 0.1337.1](https://checkra.in/1337) by yoursel
 ### (1) 1st boot (rootless)
 ```
 ./checkra1n -pvEk Pongo.bin
-./bakera1n_loader -ao
+./bakera1n_loader -po
 ```
 
 ### (2) run iproxy (from libimobiledevice)
@@ -48,7 +48,7 @@ fsutil.sh -s
 ### (7) rootful boot (if root_device = `disk0s1s8`)
 ```
 ./checkra1n -pvEk Pongo.bin
-./bakera1n_loader -au disk0s1s8
+./bakera1n_loader -pu disk0s1s8
 ```
 
 ### (8) connect to iOS device via dropbear
