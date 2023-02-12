@@ -24,3 +24,5 @@ term/unlzfse
 term/unlzfse.c
 bin/easy_game
 builtin/
+iphoneos-arm/control
+iphoneos-arm/*.deb
