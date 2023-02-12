@@ -63,4 +63,4 @@ clean:
 	-$(RM) -r build/
 	cd ramdisk && make clean
 	cd overlay && make clean
-	cd term && make clean
+	cd ra1npoc15 && make clean
