@@ -60,17 +60,21 @@ ssh root@localhost -p <port>
 ```
 curl -sLO https://dora2ios.github.io/ios15/bootstrap-ssh.tar
 curl -sLO https://github.com/coolstar/Odyssey-bootstrap/raw/master/org.swift.libswift_5.0-electra2_iphoneos-arm.deb
-curl -sLO https://dora2ios.github.io/ios15/deb/diskdev-cmds_697-1_iphoneos-arm.deb
+curl -sLO https://dora2ios.github.io/ios15/deb/bakera1n/diskdev-cmds_697-1_iphoneos-arm.deb
+curl -sLO https://dora2ios.github.io/ios15/deb/bakera1n/bakera1n-repository_2023.03.05_iphoneos-arm.deb
 
 tar --preserve-permissions -xvf bootstrap-ssh.tar -C /
 cp -aRp /cores/binpack/bin/launchctl /bin/launchctl
 /prep_bootstrap.sh
+dpkg -i bakera1n-repository_2023.03.05_iphoneos-arm.deb
+dpkg -i diskdev-cmds_697-1_iphoneos-arm.deb
 apt update
+#apt upgrade -y
 apt install org.coolstar.sileo
 dpkg -i org.swift.libswift_5.0-electra2_iphoneos-arm.deb
-dpkg -i diskdev-cmds_697-1_iphoneos-arm.deb
 rm org.swift.libswift_5.0-electra2_iphoneos-arm.deb
 rm diskdev-cmds_697-1_iphoneos-arm.deb
+rm bakera1n-repository_2023.03.05_iphoneos-arm.deb
 rm bootstrap-ssh.tar
 ```
 
