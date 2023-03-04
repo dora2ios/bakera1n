@@ -20,7 +20,7 @@ all:
 	cd build && xxd -i Pongo.bin > ../ra1npoc15/headers/Pongo_bin.h
 	
 	-$(RM) -r ra1npoc15/ra1npoc15
-	cd ra1npoc15 && make ra1npoc15_release
+	cd ra1npoc15 && make all
 	
 	#cd ra1npoc15 && rm -f headers/kpf.h
 	#cd ra1npoc15 && rm -f headers/ramdisk.h
