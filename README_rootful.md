@@ -58,15 +58,15 @@ ssh root@localhost -p <port>
 
 ### (9) install bootstrap (iOS side)  
 ```
-curl -sLO https://dora2ios.github.io/ios15/bootstrap-ssh.tar
+curl -sLO https://kok3shidoll.github.io/ios15/bootstrap-ssh.tar
 curl -sLO https://github.com/coolstar/Odyssey-bootstrap/raw/master/org.swift.libswift_5.0-electra2_iphoneos-arm.deb
-curl -sLO https://dora2ios.github.io/ios15/deb/bakera1n/diskdev-cmds_697-1_iphoneos-arm.deb
-curl -sLO https://dora2ios.github.io/ios15/deb/bakera1n/bakera1n-repository_2023.03.05_iphoneos-arm.deb
+curl -sLO https://kok3shidoll.github.io/ios15/deb/bakera1n/diskdev-cmds_697-1_iphoneos-arm.deb
+curl -sLO https://kok3shidoll.github.io/ios15/deb/bakera1n/bakera1n-repository_2023.03.05-1_iphoneos-arm.deb
 
 tar --preserve-permissions -xvf bootstrap-ssh.tar -C /
 cp -aRp /cores/binpack/bin/launchctl /bin/launchctl
 /prep_bootstrap.sh
-dpkg -i bakera1n-repository_2023.03.05_iphoneos-arm.deb
+dpkg -i bakera1n-repository_2023.03.05-1_iphoneos-arm.deb
 dpkg -i diskdev-cmds_697-1_iphoneos-arm.deb
 apt update
 #apt upgrade -y
@@ -74,12 +74,12 @@ apt install org.coolstar.sileo
 dpkg -i org.swift.libswift_5.0-electra2_iphoneos-arm.deb
 rm org.swift.libswift_5.0-electra2_iphoneos-arm.deb
 rm diskdev-cmds_697-1_iphoneos-arm.deb
-rm bakera1n-repository_2023.03.05_iphoneos-arm.deb
+rm bakera1n-repository_2023.03.05-1_iphoneos-arm.deb
 rm bootstrap-ssh.tar
 ```
 
 ### (option) install substitute (macOS/iOS side)  
-add bakera1n repo: https://dora2ios.github.io/ios15  
+add bakera1n repo: https://kok3shidoll.github.io/ios15  
 then, install substitute via Sileo.  
 
 NOTE: This build of the substitute is still a *TEST VERSION* and may have some defects. Also, this build is redistributed with permission from Sam Bingner. Please use it in a way that does not inconvenience him.  
